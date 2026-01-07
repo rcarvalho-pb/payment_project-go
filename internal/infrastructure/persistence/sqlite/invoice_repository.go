@@ -10,14 +10,14 @@ type InvoiceRepository struct {
 	db *sql.DB
 }
 
-func (r *InvoiceRepository) Save(_ *invoice.Invoice) error {
+func (r *InvoiceRepository) Save(inv *invoice.Invoice) error {
 	panic("not implemented") // TODO: Implement
 }
 
-func (r *InvoiceRepository) FindByID(_ string) (*invoice.Invoice, error) {
+func (r *InvoiceRepository) FindByID(id string) (*invoice.Invoice, error) {
 	panic("not implemented") // TODO: Implement
 }
 
-func (r *InvoiceRepository) UpdateStatus(_ string, _ invoice.Status) error {
+func (r *InvoiceRepository) UpdateStatus(id string, status invoice.Status) error {
 	panic("not implemented") // TODO: Implement
 }

@@ -3,6 +3,7 @@ package payment
 import (
 	"slices"
 	"strings"
+	"time"
 )
 
 type Status uint8
@@ -30,9 +31,21 @@ func (s Status) String() string {
 }
 
 type Payment struct {
-	ID             string
-	InvoiceID      string
-	Attempt        int
-	Status         Status
-	IdempotencyKey string
+	ID             string `db:"id"`
+	InvoiceID      string `db:"invoice_id"`
+	Attempt        int    `db:"attempt"`
+	Status         Status `db:"status"`
+	IdempotencyKey string `db:"idempotency_key"`
+	Timestamp      int64  `db:"timestamp"`
+}
+
+func NewPayment(id, invoiceID, idempotencyKey string) *Payment {
+	return &Payment{
+		ID:             id,
+		InvoiceID:      invoiceID,
+		Attempt:        1,
+		Status:         StatusCreated,
+		IdempotencyKey: idempotencyKey,
+		Timestamp:      time.Now().Unix(),
+	}
 }

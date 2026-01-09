@@ -1,13 +1,16 @@
 package sqlite
 
 import (
-	"database/sql"
-
-	"github.com/rcarvalho-pb/payment_project-go/internal/model/payment"
+	"github.com/jmoiron/sqlx"
+	"github.com/rcarvalho-pb/payment_project-go/internal/domain/payment"
 )
 
 type PaymentRepository struct {
-	db *sql.DB
+	db *sqlx.DB
+}
+
+func NewPaymentRepository(db *sqlx.DB) *PaymentRepository {
+	return &PaymentRepository{db}
 }
 
 func (r *PaymentRepository) SaveIfNotExist(p *payment.Payment) (bool, error) {

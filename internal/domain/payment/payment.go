@@ -31,12 +31,13 @@ func (s Status) String() string {
 }
 
 type Payment struct {
-	ID             string `db:"id"`
-	InvoiceID      string `db:"invoice_id"`
-	Attempt        int    `db:"attempt"`
-	Status         Status `db:"status"`
-	IdempotencyKey string `db:"idempotency_key"`
-	Timestamp      int64  `db:"timestamp"`
+	ID             string    `db:"id"`
+	InvoiceID      string    `db:"invoice_id"`
+	Attempt        int       `db:"attempt"`
+	Status         Status    `db:"status"`
+	IdempotencyKey string    `db:"idempotency_key"`
+	CreatedAt      time.Time `db:"created_at"`
+	UpdatedAt      time.Time `db:"updated_at"`
 }
 
 func NewPayment(id, invoiceID, idempotencyKey string) *Payment {
@@ -46,6 +47,7 @@ func NewPayment(id, invoiceID, idempotencyKey string) *Payment {
 		Attempt:        1,
 		Status:         StatusCreated,
 		IdempotencyKey: idempotencyKey,
-		Timestamp:      time.Now().Unix(),
+		CreatedAt:      time.Now(),
+		UpdatedAt:      time.Now(),
 	}
 }

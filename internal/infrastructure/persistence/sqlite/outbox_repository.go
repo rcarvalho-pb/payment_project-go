@@ -1,98 +1,51 @@
 package sqlite
 
-//
-// import (
-// 	"database/sql"
-// 	"encoding/json"
-// 	"time"
-//
-// 	"github.com/rcarvalho-pb/payment_project-go/internal/domain/event"
-// )
-//
-// type OutboxRepository struct {
-// 	db *sql.DB
-// }
-//
-// func NewOutboxRepository(db *sql.DB) *OutboxRepository {
-// 	return &OutboxRepository{db: db}
-// }
-//
-// // Save(OutboxEvent) error
-// // FindUnpublished(int) ([]OutboxEvent, error)
-// // MarkPublished(string) error
-//
-// func (r *OutboxRepository) Save(evt outbox.OutboxEvent) error {
-// 	data, err := json.Marshal(evt.Payload)
-// 	if err != nil {
-// 		return err
-// 	}
-//
-// 	_, err = r.db.Exec(
-// 		`INSERT INTO outbox_events (id, event_type, payload)
-// 		 VALUES (?, ?, ?)`,
-// 		string(evt.Type),
-// 		data,
-// 		time.Now(),
-// 	)
-// 	return err
-// }
-//
-// func (r *OutboxRepository) FindUnpublished(limit int) ([]outbox.OutboxEvent, error) {
-// 	rows, err := r.db.Query(
-// 		`SELECT id, event_type, payload
-// 		 FROM outbox_events
-// 		 WHERE published = 0
-// 		 ORDER BY id
-// 		 LIMIT ?`,
-// 		limit,
-// 	)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	defer rows.Close()
-//
-// 	var events []outbox.OutboxEvent
-// 	var ids []string
-//
-// 	for rows.Next() {
-// 		var (
-// 			id      string
-// 			typ     string
-// 			payload []byte
-// 		)
-//
-// 		if err := rows.Scan(&id, &typ, &payload); err != nil {
-// 			return nil, err
-// 		}
-//
-// 		evt := outbox.OutboxEvent{
-// 			ID:        id,
-// 			Type:      event.Type(typ),
-// 			Payload:   payload,
-// 			Published: false,
-// 			CreatedAt: time.Now(),
-// 		}
-//
-// 		events = append(events, evt)
-// 		ids = append(ids, id)
-// 	}
-//
-// 	return events, nil
-// }
-//
-// func (r *OutboxRepository) MarkPublished(id string) error {
-// 	tx, err := r.db.Begin()
-// 	if err != nil {
-// 		return err
-// 	}
-// 	defer tx.Rollback()
-//
-// 	if _, err := tx.Exec(
-// 		`UPDATE outbox_events SET published = 1 WHERE id = ?`,
-// 		id,
-// 	); err != nil {
-// 		return err
-// 	}
-//
-// 	return tx.Commit()
-// }
+import (
+	"github.com/jmoiron/sqlx"
+	"github.com/rcarvalho-pb/payment_project-go/internal/infrastructure/outbox"
+)
+
+type OutboxRepository struct {
+	db *sqlx.DB
+}
+
+func NewOutboxRepository(db *sqlx.DB) *OutboxRepository {
+	return &OutboxRepository{db}
+}
+
+func (r *OutboxRepository) Save(evt *outbox.OutboxEvent) error {
+	stmt := `
+	INSERT INTO outbox_events (id, event_type, payload, published, created_at) VALUES (?, ?, ?, ?, ?)
+	`
+
+	if _, err := r.db.Exec(stmt, evt.ID, evt.Type, evt.Payload, evt.Published, evt.CreatedAt); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *OutboxRepository) FindUnpublished(limit int) ([]*outbox.OutboxEvent, error) {
+	query := `
+	SELECT * FROM outbox_events WHERE published = 0
+	`
+	var evts []*outbox.OutboxEvent
+
+	if err := r.db.Select(&evts, query, 0); err != nil {
+		return nil, err
+	}
+
+	return evts, nil
+}
+
+func (r *OutboxRepository) MarkPublished(id string) error {
+	stmt := `
+	UPDATE outbox_events SET published = 1 WHERE id = ?
+	`
+
+	if _, err := r.db.Exec(stmt, id); err != nil {
+		return err
+	}
+
+	return nil
+}

@@ -7,6 +7,7 @@ type PaymentRequestPayload struct {
 	Amount    int64
 	Attempt   int
 	CreatedAt time.Time
+	UpdatedAt time.Time
 }
 
 type PaymentSucceededPayload struct {

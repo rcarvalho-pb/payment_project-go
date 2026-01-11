@@ -41,18 +41,12 @@ type Invoice struct {
 	DueDate   time.Time `db:"due_date"`
 }
 
-func NewInvoice(id string, amount int64, expirationTime ...time.Duration) *Invoice {
-	var expTime time.Duration
-	if len(expirationTime) > 0 {
-		expTime = expirationTime[0]
-	} else {
-		expTime = 1 * time.Hour
-	}
+func NewInvoice(id string, amount int64) *Invoice {
 	return &Invoice{
 		ID:        id,
 		Amount:    amount,
 		Status:    StatusPending,
 		CreatedAt: time.Now(),
-		DueDate:   time.Now().Add(expTime),
+		DueDate:   time.Now().Add(1 * time.Hour),
 	}
 }

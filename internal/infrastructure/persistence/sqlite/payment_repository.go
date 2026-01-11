@@ -2,7 +2,6 @@ package sqlite
 
 import (
 	"errors"
-	"log"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -20,7 +19,6 @@ func NewPaymentRepository(db *sqlx.DB) *PaymentRepository {
 func (r *PaymentRepository) SaveIfNotExist(p *payment.Payment) (bool, error) {
 	paymnt, err := r.FindByIdempotencyKey(p.IdempotencyKey)
 	if paymnt != nil {
-		log.Println("find by idempotency key error: " + err.Error())
 		return false, err
 	}
 	stmt := `
@@ -40,6 +38,18 @@ func (r *PaymentRepository) FindByIdempotencyKey(idempotencyKey string) (*paymen
 		return nil, err
 	}
 	return &paymt, nil
+}
+
+func (r *PaymentRepository) FindAll() ([]*payment.Payment, error) {
+	var paymnts []*payment.Payment
+	query := `
+	SELECT * FROM payments
+	`
+	if err := r.db.Select(&paymnts, query); err != nil {
+		return nil, err
+	}
+
+	return paymnts, nil
 }
 
 func (r *PaymentRepository) UpdateStatus(id string, status payment.Status) error {

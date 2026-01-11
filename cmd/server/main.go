@@ -1,10 +1,8 @@
 package main
 
 import (
-	"log"
 	"os"
 
-	"github.com/rcarvalho-pb/payment_project-go/internal/domain/payment"
 	"github.com/rcarvalho-pb/payment_project-go/internal/infra/logging"
 	"github.com/rcarvalho-pb/payment_project-go/internal/infrastructure/persistence/sqlite"
 )
@@ -19,5 +17,4 @@ func main() {
 		logger.Error("couldn't open db. exiting program", nil)
 		os.Exit(1)
 	}
-	logger.Info("DB opened successfully", nil)
 }

@@ -2,6 +2,7 @@ package invoice
 
 import (
 	"errors"
+	"log"
 
 	"github.com/rcarvalho-pb/payment_project-go/internal/domain/event"
 	"github.com/rcarvalho-pb/payment_project-go/internal/domain/invoice"
@@ -14,20 +15,32 @@ type PaymentEventHandler struct {
 func (h *PaymentEventHandler) Handle(evt *event.Event) error {
 	switch evt.Type {
 	case event.PaymentSucceeded:
-		payment, ok := evt.Payload.(event.PaymentSucceededPayload)
+		log.Println("payment event handler: succeeded payment")
+		payment, ok := evt.Payload.(*event.PaymentSucceededPayload)
 		if !ok {
+			log.Println("payment event handler: failed to cast payload to succeeded")
 			return errors.New("invalid payload for PaymentSucceeded")
 		}
 
-		return h.Repo.UpdateStatus(payment.InvoiceID, invoice.StatusPaid)
+		err := h.Repo.UpdateStatus(payment.InvoiceID, invoice.StatusPaid)
+		if err != nil {
+			log.Println("error saving in db succeeded")
+		}
+		return err
 	case event.PaymentFailed:
-		payment, ok := evt.Payload.(event.PaymentFailedPayload)
+		log.Println("payment event handler: failed payment")
+		payment, ok := evt.Payload.(*event.PaymentFailedPayload)
 		if !ok {
+			log.Println("payment event handler: failed to cast payload to failed")
 			return errors.New("invalid payload for PaymentFailed")
 		}
 
 		if !payment.Retryable {
-			return h.Repo.UpdateStatus(payment.InvoiceID, invoice.StatusFailed)
+			err := h.Repo.UpdateStatus(payment.InvoiceID, invoice.StatusFailed)
+			if err != nil {
+				log.Println("error saving in db failed")
+			}
+			return err
 		}
 		return nil
 	}

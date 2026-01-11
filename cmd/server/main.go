@@ -2,16 +2,18 @@ package main
 
 import (
 	"context"
+	"log"
+	"net/http"
 	"os"
 	"time"
 
-	"github.com/google/uuid"
 	appInvoice "github.com/rcarvalho-pb/payment_project-go/internal/application/invoice"
 	appWorker "github.com/rcarvalho-pb/payment_project-go/internal/application/worker"
 	domainEvent "github.com/rcarvalho-pb/payment_project-go/internal/domain/event"
 	"github.com/rcarvalho-pb/payment_project-go/internal/infra/logging"
 	"github.com/rcarvalho-pb/payment_project-go/internal/infra/metrics"
 	"github.com/rcarvalho-pb/payment_project-go/internal/infrastructure/eventbus"
+	httpapi "github.com/rcarvalho-pb/payment_project-go/internal/infrastructure/http"
 	"github.com/rcarvalho-pb/payment_project-go/internal/infrastructure/outbox"
 	infraPayment "github.com/rcarvalho-pb/payment_project-go/internal/infrastructure/payment"
 	"github.com/rcarvalho-pb/payment_project-go/internal/infrastructure/persistence/sqlite"
@@ -21,12 +23,13 @@ func main() {
 	logger := logging.StdoutLogger{}
 	logger.Info("starting program...", nil)
 	defer logger.Info("ending program...", nil)
-	db := sqlite.NewDB("./db/db.db")
-	defer db.Close()
+	// db := sqlite.NewDB("./db/db.db")
+	db := sqlite.NewDB("../../db/db.db")
 	if db == nil {
 		logger.Error("couldn't open db. exiting program", nil)
 		os.Exit(1)
 	}
+	defer db.Close()
 	metrics := metrics.Counters{}
 	bus := eventbus.NewInMemoryBus()
 
@@ -72,10 +75,15 @@ func main() {
 
 	invoiceService := appInvoice.Service{
 		Repo:     invoiceRepo,
-		EventBus: bus,
+		Recorder: &recorder,
 	}
 
-	invID := uuid.NewString()
-	invoiceService.CreateInvoice(invID, 100)
-	invoiceService.RequestPayment(invID)
+	invoiceHandler := httpapi.NewInvoiceHandler(&invoiceService)
+
+	router := httpapi.NewRouter(invoiceHandler)
+
+	logger.Info("starting server on port :8080", nil)
+	if err := http.ListenAndServe(":8080", router); err != nil {
+		log.Fatal(err)
+	}
 }

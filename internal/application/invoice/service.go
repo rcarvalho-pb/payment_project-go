@@ -4,6 +4,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/rcarvalho-pb/payment_project-go/internal/application/worker"
 	"github.com/rcarvalho-pb/payment_project-go/internal/domain/event"
 	"github.com/rcarvalho-pb/payment_project-go/internal/domain/invoice"
 )
@@ -15,7 +16,7 @@ var (
 
 type Service struct {
 	Repo     invoice.Repository
-	EventBus EventPublisher
+	Recorder worker.Recorder
 }
 
 type EventPublisher interface {
@@ -46,7 +47,7 @@ func (s *Service) RequestPayment(invoiceID string) error {
 
 	evt := &event.Event{
 		Type: event.PaymentRequested,
-		Payload: event.PaymentRequestPayload{
+		Payload: &event.PaymentRequestPayload{
 			InvoiceID: invoiceID,
 			Amount:    inv.Amount,
 			Attempt:   1,
@@ -55,5 +56,5 @@ func (s *Service) RequestPayment(invoiceID string) error {
 		},
 	}
 
-	return s.EventBus.Publish(evt)
+	return s.Recorder.Record(evt)
 }

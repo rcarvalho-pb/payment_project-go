@@ -42,12 +42,11 @@ func runMigrations(db *sqlx.DB) error {
 		);`,
 
 		`CREATE TABLE IF NOT EXISTS outbox_events (
-			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			id TEXT PRIMARY KEY,
 			event_type TEXT NOT NULL,
 			payload TEXT NOT NULL,
-			created_at DATETIME NOT NULL,
-			updated_at datetime not null,
-			published_at DATETIME
+			published INTEGER NOT NULL,
+			created_at DATETIME NOT NULL
 		);`,
 	}
 

@@ -13,10 +13,6 @@ type Recorder struct {
 }
 
 func (r *Recorder) Record(evt *event.Event) error {
-	var pub bool
-	if evt.Type == event.PaymentSucceeded {
-		pub = true
-	}
 	payload, err := json.Marshal(evt.Payload)
 	if err != nil {
 		return err
@@ -26,7 +22,7 @@ func (r *Recorder) Record(evt *event.Event) error {
 		ID:        uuid.NewString(),
 		Type:      evt.Type,
 		Payload:   payload,
-		Published: pub,
+		Published: false,
 		CreatedAt: time.Now(),
 	}
 

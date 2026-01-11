@@ -30,7 +30,7 @@ func (p *PaymentProcessor) Handle(evt *event.Event) error {
 		return nil
 	}
 
-	payload, ok := evt.Payload.(event.PaymentRequestPayload)
+	payload, ok := evt.Payload.(*event.PaymentRequestPayload)
 	if !ok {
 		return ErrInvalidPayload
 	}
@@ -75,7 +75,7 @@ func (p *PaymentProcessor) Handle(evt *event.Event) error {
 
 		return p.Recorder.Record(&event.Event{
 			Type: event.PaymentSucceeded,
-			Payload: event.PaymentSucceededPayload{
+			Payload: &event.PaymentSucceededPayload{
 				InvoiceID:  payload.InvoiceID,
 				PaymentID:  paymentID,
 				FinishedAt: time.Now(),
@@ -83,11 +83,17 @@ func (p *PaymentProcessor) Handle(evt *event.Event) error {
 		})
 	}
 
+	p.Logger.Info("payment failed", map[string]any{
+		"payment-id": paymentID,
+		"invoice-id": payload.InvoiceID,
+		"attempt":    payload.Attempt,
+	})
+
 	p.Repo.UpdateStatus(paymentID, domainPayment.StatusFailed)
 
 	return p.Recorder.Record(&event.Event{
 		Type: event.PaymentFailed,
-		Payload: event.PaymentFailedPayload{
+		Payload: &event.PaymentFailedPayload{
 			InvoiceID:  payload.InvoiceID,
 			PaymentID:  paymentID,
 			Retryable:  true,

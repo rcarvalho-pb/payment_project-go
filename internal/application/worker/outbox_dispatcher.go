@@ -3,6 +3,7 @@ package worker
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"time"
 
 	"github.com/rcarvalho-pb/payment_project-go/internal/domain/event"
@@ -35,12 +36,13 @@ func (d *OutboxDispatcher) Run(ctx context.Context) {
 func (d *OutboxDispatcher) dispatchOnce() {
 	events, err := d.Repo.FindUnpublished(d.BatchSize)
 	if err != nil {
-		d.Logger.Error("error finding unpublished outbox events", nil)
+		d.Logger.Error("error finding unpublished outbox events: "+err.Error(), nil)
 		return
 	}
 	for _, evt := range events {
-		var payload any
-		if err := json.Unmarshal(evt.Payload, &payload); err != nil {
+		payload, err := unmarshallPayload(evt)
+		if err != nil || payload == nil {
+			d.Logger.Error("error unmarshiling payload: "+err.Error(), nil)
 			continue
 		}
 
@@ -50,7 +52,7 @@ func (d *OutboxDispatcher) dispatchOnce() {
 		}
 
 		if err := d.EventBus.Publish(domainEvent); err != nil {
-			d.Logger.Error("error publishing event in eventbus", nil)
+			d.Logger.Error("error publishing event in eventbus: "+err.Error(), nil)
 			continue
 		}
 
@@ -59,4 +61,30 @@ func (d *OutboxDispatcher) dispatchOnce() {
 			continue
 		}
 	}
+}
+
+func unmarshallPayload(evt *outbox.OutboxEvent) (any, error) {
+	switch evt.Type {
+	case event.PaymentRequested:
+		var payload event.PaymentRequestPayload
+		if err := json.Unmarshal(evt.Payload, &payload); err != nil {
+			return nil, err
+		}
+		return &payload, nil
+
+	case event.PaymentSucceeded:
+		var payload event.PaymentSucceededPayload
+		if err := json.Unmarshal(evt.Payload, &payload); err != nil {
+			return nil, err
+		}
+		return &payload, nil
+
+	case event.PaymentFailed:
+		var payload event.PaymentFailedPayload
+		if err := json.Unmarshal(evt.Payload, &payload); err != nil {
+			return nil, err
+		}
+		return &payload, nil
+	}
+	return nil, errors.New("invalid event type")
 }

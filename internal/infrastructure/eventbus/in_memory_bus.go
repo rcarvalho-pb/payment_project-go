@@ -4,13 +4,15 @@ import (
 	"sync"
 
 	"github.com/rcarvalho-pb/payment_project-go/internal/domain/event"
+	"github.com/rcarvalho-pb/payment_project-go/internal/domain/invoice"
 )
 
 type HandlerFunc func(*event.Event) error
 
 type InMemoryBus struct {
-	mu       sync.RWMutex
-	handlers map[event.Type][]HandlerFunc
+	invoiceRepo invoice.Repository
+	mu          sync.RWMutex
+	handlers    map[event.Type][]HandlerFunc
 }
 
 func NewInMemoryBus() *InMemoryBus {

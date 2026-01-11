@@ -4,19 +4,18 @@ import (
 	"errors"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/rcarvalho-pb/payment_project-go/internal/domain/event"
-	domain "github.com/rcarvalho-pb/payment_project-go/internal/domain/payment"
+	domainPayment "github.com/rcarvalho-pb/payment_project-go/internal/domain/payment"
 	"github.com/rcarvalho-pb/payment_project-go/internal/infra/logging"
 	"github.com/rcarvalho-pb/payment_project-go/internal/infra/metrics"
 )
 
-var (
-	ErrInvalidPayload = errors.New("invalid payload for payment request")
-)
+var ErrInvalidPayload = errors.New("invalid payload for payment request")
 
 type PaymentProcessor struct {
-	Repo            domain.Repository
-	EventBus        EventPublisher
+	Repo            domainPayment.Repository
+	Recorder        Recorder
 	PaymentExecutor PaymentExecutor
 	Logger          logging.Logger
 	Metrics         metrics.Counters
@@ -41,16 +40,16 @@ func (p *PaymentProcessor) Handle(evt *event.Event) error {
 		"attempt":    payload.Attempt,
 	})
 
-	idempotencyKey := generateIdempotencyKey(payload.InvoiceID)
+	idempotencyKey := uuid.NewString()
 
 	_, err := p.Repo.FindByIdempotencyKey(idempotencyKey)
 	if err == nil {
 		return nil
 	}
 
-	paymentID := generatePaymentID()
+	paymentID := uuid.NewString()
 
-	paymnt := domain.NewPayment(paymentID, payload.InvoiceID, idempotencyKey)
+	paymnt := domainPayment.NewPayment(paymentID, payload.InvoiceID, idempotencyKey)
 
 	saved, err := p.Repo.SaveIfNotExist(paymnt)
 	if err != nil && !saved {
@@ -70,11 +69,11 @@ func (p *PaymentProcessor) Handle(evt *event.Event) error {
 			"attempt":    payload.Attempt,
 		})
 
-		if err := p.Repo.UpdateStatus(paymentID, domain.StatusSuccess); err != nil {
+		if err := p.Repo.UpdateStatus(paymentID, domainPayment.StatusSuccess); err != nil {
 			return err
 		}
 
-		return p.EventBus.Publish(&event.Event{
+		return p.Recorder.Record(&event.Event{
 			Type: event.PaymentSucceeded,
 			Payload: event.PaymentSucceededPayload{
 				InvoiceID:  payload.InvoiceID,
@@ -84,9 +83,9 @@ func (p *PaymentProcessor) Handle(evt *event.Event) error {
 		})
 	}
 
-	p.Repo.UpdateStatus(paymentID, domain.StatusFailed)
+	p.Repo.UpdateStatus(paymentID, domainPayment.StatusFailed)
 
-	return p.EventBus.Publish(&event.Event{
+	return p.Recorder.Record(&event.Event{
 		Type: event.PaymentFailed,
 		Payload: event.PaymentFailedPayload{
 			InvoiceID:  payload.InvoiceID,
@@ -96,5 +95,4 @@ func (p *PaymentProcessor) Handle(evt *event.Event) error {
 			FinishedAt: time.Now(),
 		},
 	})
-
 }

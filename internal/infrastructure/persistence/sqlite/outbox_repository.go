@@ -27,11 +27,11 @@ func (r *OutboxRepository) Save(evt *outbox.OutboxEvent) error {
 
 func (r *OutboxRepository) FindUnpublished(limit int) ([]*outbox.OutboxEvent, error) {
 	query := `
-	SELECT * FROM outbox_events WHERE published = 0
+	SELECT * FROM outbox_events WHERE published = 0 ORDER BY created_at LIMIT ?
 	`
 	var evts []*outbox.OutboxEvent
 
-	if err := r.db.Select(&evts, query, 0); err != nil {
+	if err := r.db.Select(&evts, query, limit); err != nil {
 		return nil, err
 	}
 

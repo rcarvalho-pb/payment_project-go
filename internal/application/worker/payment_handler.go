@@ -16,13 +16,10 @@ var ErrInvalidPayload = errors.New("invalid payload for payment request")
 type PaymentProcessor struct {
 	Repo            domainPayment.Repository
 	Recorder        Recorder
+	Retry           *RetryScheduler
 	PaymentExecutor PaymentExecutor
 	Logger          logging.Logger
 	Metrics         metrics.Counters
-}
-
-type EventPublisher interface {
-	Publish(*event.Event) error
 }
 
 func (p *PaymentProcessor) Handle(evt *event.Event) error {
@@ -91,7 +88,7 @@ func (p *PaymentProcessor) Handle(evt *event.Event) error {
 
 	p.Repo.UpdateStatus(paymentID, domainPayment.StatusFailed)
 
-	return p.Recorder.Record(&event.Event{
+	p.Recorder.Record(&event.Event{
 		Type: event.PaymentFailed,
 		Payload: &event.PaymentFailedPayload{
 			InvoiceID:  payload.InvoiceID,
@@ -101,4 +98,8 @@ func (p *PaymentProcessor) Handle(evt *event.Event) error {
 			FinishedAt: time.Now(),
 		},
 	})
+
+	p.Retry.ScheduleRetry(payload)
+
+	return nil
 }

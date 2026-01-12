@@ -23,8 +23,8 @@ func main() {
 	logger := logging.StdoutLogger{}
 	logger.Info("starting program...", nil)
 	defer logger.Info("ending program...", nil)
-	// db := sqlite.NewDB("./db/db.db")
-	db := sqlite.NewDB("../../db/db.db")
+	db := sqlite.NewDB("./db/db.db")
+	// db := sqlite.NewDB("../../db/db.db")
 	if db == nil {
 		logger.Error("couldn't open db. exiting program", nil)
 		os.Exit(1)
@@ -63,9 +63,17 @@ func main() {
 		Repo: outboxRepo,
 	}
 
+	retry := appWorker.RetryScheduler{
+		Recorder:  recorder,
+		MaxRetry:  3,
+		BaseDelay: 1 * time.Second,
+		MaxDelay:  30 * time.Second,
+	}
+
 	processor := appWorker.PaymentProcessor{
 		Repo:            paymentRepo,
 		Recorder:        &recorder,
+		Retry:           &retry,
 		PaymentExecutor: &paymentExecutor,
 		Logger:          &logger,
 		Metrics:         metrics,

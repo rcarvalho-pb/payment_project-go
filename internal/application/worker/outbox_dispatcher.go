@@ -13,7 +13,7 @@ import (
 
 type OutboxDispatcher struct {
 	Repo         outbox.OutboxRepository
-	EventBus     EventPublisher
+	EventBus     event.EventPublisher
 	Logger       logging.Logger
 	PollInterval time.Duration
 	BatchSize    int

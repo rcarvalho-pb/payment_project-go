@@ -1,15 +1,11 @@
 package payment
 
 import (
-	"github.com/rcarvalho-pb/payment_project-go/internal/domain/event"
 	"github.com/rcarvalho-pb/payment_project-go/internal/domain/payment"
+	"github.com/rcarvalho-pb/payment_project-go/internal/infrastructure/outbox"
 )
 
 type Service struct {
 	Repo     payment.Repository
-	EventBus EventPublisher
-}
-
-type EventPublisher interface {
-	Publish(*event.Event) error
+	Recorder outbox.Recorder
 }

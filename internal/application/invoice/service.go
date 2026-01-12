@@ -19,10 +19,6 @@ type Service struct {
 	Recorder worker.Recorder
 }
 
-type EventPublisher interface {
-	Publish(*event.Event) error
-}
-
 func (s *Service) CreateInvoice(id string, amount int64) (*invoice.Invoice, error) {
 	inv := invoice.NewInvoice(id, amount)
 	if err := s.Repo.Save(inv); err != nil {

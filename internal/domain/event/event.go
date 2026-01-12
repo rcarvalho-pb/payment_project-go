@@ -28,3 +28,7 @@ type Event struct {
 	Type    Type
 	Payload any
 }
+
+type EventPublisher interface {
+	Publish(*Event) error
+}

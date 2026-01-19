@@ -55,7 +55,7 @@ func main() {
 	ctx := context.Background()
 	defer ctx.Done()
 
-	go func() { dispatcher.Run(ctx) }()
+	go dispatcher.Run(ctx)
 
 	paymentExecutor := infraPayment.PaymentExecutor{}
 
@@ -76,7 +76,7 @@ func main() {
 		Retry:           &retry,
 		PaymentExecutor: &paymentExecutor,
 		Logger:          &logger,
-		Metrics:         metrics,
+		Metrics:         &metrics,
 	}
 
 	bus.Subscribe(domainEvent.PaymentRequested, processor.Handle)

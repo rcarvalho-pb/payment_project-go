@@ -15,10 +15,8 @@ type PaymentEventHandler struct {
 func (h *PaymentEventHandler) Handle(evt *event.Event) error {
 	switch evt.Type {
 	case event.PaymentSucceeded:
-		log.Println("payment event handler: succeeded payment")
 		payment, ok := evt.Payload.(*event.PaymentSucceededPayload)
 		if !ok {
-			log.Println("payment event handler: failed to cast payload to succeeded")
 			return errors.New("invalid payload for PaymentSucceeded")
 		}
 
@@ -28,10 +26,8 @@ func (h *PaymentEventHandler) Handle(evt *event.Event) error {
 		}
 		return err
 	case event.PaymentFailed:
-		log.Println("payment event handler: failed payment")
 		payment, ok := evt.Payload.(*event.PaymentFailedPayload)
 		if !ok {
-			log.Println("payment event handler: failed to cast payload to failed")
 			return errors.New("invalid payload for PaymentFailed")
 		}
 

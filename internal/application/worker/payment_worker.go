@@ -17,7 +17,7 @@ type PaymentExecutor interface {
 }
 
 type Scheduler interface {
-	Schedule(event.PaymentRequestPayload)
+	Schedule(event.PaymentRequestPayload) error
 }
 
 type Recorder interface {

@@ -1,14 +1,16 @@
 package worker
 
 import (
+	"context"
 	"errors"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/rcarvalho-pb/payment_project-go/internal/application/contracts"
 	"github.com/rcarvalho-pb/payment_project-go/internal/domain/event"
 	domainPayment "github.com/rcarvalho-pb/payment_project-go/internal/domain/payment"
 	"github.com/rcarvalho-pb/payment_project-go/internal/infra/logging"
-	"github.com/rcarvalho-pb/payment_project-go/internal/infra/metrics"
+	"github.com/rcarvalho-pb/payment_project-go/internal/infra/observability"
 )
 
 var ErrInvalidPayload = errors.New("invalid payload for payment request")
@@ -19,10 +21,10 @@ type PaymentProcessor struct {
 	Retry           *RetryScheduler
 	PaymentExecutor PaymentExecutor
 	Logger          logging.Logger
-	Metrics         metrics.Counters
+	Metrics         contracts.PaymentMetrics
 }
 
-func (p *PaymentProcessor) Handle(evt *event.Event) error {
+func (p *PaymentProcessor) Handle(ctx context.Context, evt *event.Event) error {
 	if evt.Type != event.PaymentRequested {
 		return nil
 	}
@@ -32,10 +34,16 @@ func (p *PaymentProcessor) Handle(evt *event.Event) error {
 		return ErrInvalidPayload
 	}
 
-	p.Logger.Info("processing payment", map[string]any{
+	fields := map[string]any{
 		"invoice-id": payload.InvoiceID,
 		"attempt":    payload.Attempt,
-	})
+	}
+
+	if cid, ok := observability.CorrelationIDFromContext(ctx); ok {
+		fields["correlation-id"] = cid
+	}
+
+	p.Logger.Info("processing payment", fields)
 
 	idempotencyKey := uuid.NewString()
 
@@ -45,6 +53,8 @@ func (p *PaymentProcessor) Handle(evt *event.Event) error {
 	}
 
 	paymentID := uuid.NewString()
+
+	fields["payment-id"] = paymentID
 
 	paymnt := domainPayment.NewPayment(paymentID, payload.InvoiceID, idempotencyKey)
 
@@ -60,11 +70,7 @@ func (p *PaymentProcessor) Handle(evt *event.Event) error {
 	if paymentSucceeded {
 		p.Metrics.IncSucceeded()
 
-		p.Logger.Info("payment succeeded", map[string]any{
-			"payment-id": paymentID,
-			"invoice-id": payload.InvoiceID,
-			"attempt":    payload.Attempt,
-		})
+		p.Logger.Info("payment succeeded", fields)
 
 		if err := p.Repo.UpdateStatus(paymentID, domainPayment.StatusSuccess); err != nil {
 			return err
@@ -80,26 +86,32 @@ func (p *PaymentProcessor) Handle(evt *event.Event) error {
 		})
 	}
 
-	p.Logger.Info("payment failed", map[string]any{
-		"payment-id": paymentID,
-		"invoice-id": payload.InvoiceID,
-		"attempt":    payload.Attempt,
-	})
+	p.Logger.Info("payment failed", fields)
 
 	p.Repo.UpdateStatus(paymentID, domainPayment.StatusFailed)
 
+	failPayload := &event.PaymentFailedPayload{
+		InvoiceID:  payload.InvoiceID,
+		PaymentID:  paymentID,
+		Retryable:  true,
+		Reason:     "temporary failure",
+		FinishedAt: time.Now(),
+	}
+
 	p.Recorder.Record(&event.Event{
-		Type: event.PaymentFailed,
-		Payload: &event.PaymentFailedPayload{
-			InvoiceID:  payload.InvoiceID,
-			PaymentID:  paymentID,
-			Retryable:  true,
-			Reason:     "temporary failure",
-			FinishedAt: time.Now(),
-		},
+		Type:    event.PaymentFailed,
+		Payload: failPayload,
 	})
 
-	p.Retry.ScheduleRetry(payload)
+	err = p.Retry.ScheduleRetry(payload)
+	if err != nil {
+		failPayload.Retryable = false
+		failPayload.FinishedAt = time.Now()
+		p.Recorder.Record(&event.Event{
+			Type:    event.PaymentFailed,
+			Payload: failPayload,
+		})
+	}
 
 	return nil
 }

@@ -1,6 +1,7 @@
 package worker
 
 import (
+	"errors"
 	"time"
 
 	"github.com/rcarvalho-pb/payment_project-go/internal/domain/event"
@@ -14,17 +15,14 @@ type RetryScheduler struct {
 	MaxDelay  time.Duration
 }
 
-func (r *RetryScheduler) ScheduleRetry(payload *event.PaymentRequestPayload) {
+func (r *RetryScheduler) ScheduleRetry(payload *event.PaymentRequestPayload) error {
 	if payload.Attempt >= r.MaxRetry {
-		return
+		return errors.New("max attempts reached")
 	}
 
-	delay := r.BaseDelay * time.Duration(1<<payload.Attempt-1)
-	if delay > r.MaxDelay {
-		delay = r.MaxDelay
-	}
+	delay := min(r.BaseDelay*time.Duration(1<<payload.Attempt-1), r.MaxDelay)
 
-	nextPayload := &event.PaymentRequestPayload{
+	nextPayload := event.PaymentRequestPayload{
 		InvoiceID: payload.InvoiceID,
 		Amount:    payload.Amount,
 		Attempt:   payload.Attempt + 1,
@@ -36,7 +34,8 @@ func (r *RetryScheduler) ScheduleRetry(payload *event.PaymentRequestPayload) {
 		time.Sleep(delay)
 		r.Recorder.Record(&event.Event{
 			Type:    event.PaymentRequested,
-			Payload: nextPayload,
+			Payload: &nextPayload,
 		})
 	}()
+	return nil
 }

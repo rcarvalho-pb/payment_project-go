@@ -16,6 +16,6 @@ type OutboxEvent struct {
 
 type OutboxRepository interface {
 	Save(evt *OutboxEvent) error
-	FindUnpublished(limit int) ([]*OutboxEvent, error)
-	MarkPublished(id string) error
+	FindUnpublished(limit int) ([]*OutboxEvent, []string, error)
+	MarkPublished(id []string) error
 }

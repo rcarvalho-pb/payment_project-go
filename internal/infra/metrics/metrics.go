@@ -1,6 +1,12 @@
 package metrics
 
-import "sync/atomic"
+import (
+	"sync/atomic"
+
+	"github.com/rcarvalho-pb/payment_project-go/internal/application/contracts"
+)
+
+var _ contracts.PaymentMetrics = (*Counters)(nil)
 
 type Counters struct {
 	PaymentProcessed uint64

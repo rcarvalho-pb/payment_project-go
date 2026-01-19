@@ -25,27 +25,40 @@ func (r *OutboxRepository) Save(evt *outbox.OutboxEvent) error {
 	return nil
 }
 
-func (r *OutboxRepository) FindUnpublished(limit int) ([]*outbox.OutboxEvent, error) {
+func (r *OutboxRepository) FindUnpublished(limit int) ([]*outbox.OutboxEvent, []string, error) {
 	query := `
 	SELECT * FROM outbox_events WHERE published = 0 ORDER BY created_at LIMIT ?
 	`
 	var evts []*outbox.OutboxEvent
+	var ids []string
 
 	if err := r.db.Select(&evts, query, limit); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	return evts, nil
+	for _, evt := range evts {
+		ids = append(ids, evt.ID)
+	}
+
+	return evts, ids, nil
 }
 
-func (r *OutboxRepository) MarkPublished(id string) error {
+func (r *OutboxRepository) MarkPublished(ids []string) error {
+	tx, err := r.db.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
 	stmt := `
 	UPDATE outbox_events SET published = 1 WHERE id = ?
 	`
 
-	if _, err := r.db.Exec(stmt, id); err != nil {
-		return err
+	for _, id := range ids {
+		if _, err := tx.Exec(stmt, id); err != nil {
+			return err
+		}
 	}
 
-	return nil
+	return tx.Commit()
 }

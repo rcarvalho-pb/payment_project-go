@@ -34,7 +34,7 @@ func (d *OutboxDispatcher) Run(ctx context.Context) {
 }
 
 func (d *OutboxDispatcher) dispatchOnce() {
-	events, err := d.Repo.FindUnpublished(d.BatchSize)
+	events, ids, err := d.Repo.FindUnpublished(d.BatchSize)
 	if err != nil {
 		d.Logger.Error("error finding unpublished outbox events: "+err.Error(), nil)
 		return
@@ -56,10 +56,10 @@ func (d *OutboxDispatcher) dispatchOnce() {
 			continue
 		}
 
-		if err := d.Repo.MarkPublished(evt.ID); err != nil {
-			d.Logger.Error("error marking outbox event as published", nil)
-			continue
-		}
+	}
+	if err := d.Repo.MarkPublished(ids); err != nil {
+		d.Logger.Error("error marking outbox event as published", nil)
+		return
 	}
 }
 

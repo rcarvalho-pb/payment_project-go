@@ -15,10 +15,10 @@ func NewOutboxRepository(db *sqlx.DB) *OutboxRepository {
 
 func (r *OutboxRepository) Save(evt *outbox.OutboxEvent) error {
 	stmt := `
-	INSERT INTO outbox_events (id, event_type, payload, published, created_at) VALUES (?, ?, ?, ?, ?)
+	INSERT INTO outbox_events (id, correlation_id, event_type, payload, published, created_at) VALUES (?, ?, ?, ?, ?, ?)
 	`
 
-	if _, err := r.db.Exec(stmt, evt.ID, evt.Type, evt.Payload, evt.Published, evt.CreatedAt); err != nil {
+	if _, err := r.db.Exec(stmt, evt.ID, evt.CorrelationID, evt.Type, evt.Payload, evt.Published, evt.CreatedAt); err != nil {
 		return err
 	}
 

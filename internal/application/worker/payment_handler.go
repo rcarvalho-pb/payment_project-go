@@ -76,7 +76,7 @@ func (p *PaymentProcessor) Handle(ctx context.Context, evt *event.Event) error {
 			return err
 		}
 
-		return p.Recorder.Record(&event.Event{
+		return p.Recorder.Record(ctx, &event.Event{
 			Type: event.PaymentSucceeded,
 			Payload: &event.PaymentSucceededPayload{
 				InvoiceID:  payload.InvoiceID,
@@ -98,16 +98,16 @@ func (p *PaymentProcessor) Handle(ctx context.Context, evt *event.Event) error {
 		FinishedAt: time.Now(),
 	}
 
-	p.Recorder.Record(&event.Event{
+	p.Recorder.Record(ctx, &event.Event{
 		Type:    event.PaymentFailed,
 		Payload: failPayload,
 	})
 
-	err = p.Retry.ScheduleRetry(payload)
+	err = p.Retry.ScheduleRetry(ctx, payload)
 	if err != nil {
 		failPayload.Retryable = false
 		failPayload.FinishedAt = time.Now()
-		p.Recorder.Record(&event.Event{
+		p.Recorder.Record(ctx, &event.Event{
 			Type:    event.PaymentFailed,
 			Payload: failPayload,
 		})

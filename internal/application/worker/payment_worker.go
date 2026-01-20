@@ -1,6 +1,8 @@
 package worker
 
 import (
+	"context"
+
 	"github.com/rcarvalho-pb/payment_project-go/internal/domain/event"
 )
 
@@ -21,5 +23,5 @@ type Scheduler interface {
 }
 
 type Recorder interface {
-	Record(evt *event.Event) error
+	Record(ctx context.Context, evt *event.Event) error
 }

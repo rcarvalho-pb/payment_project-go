@@ -28,12 +28,12 @@ func (d *OutboxDispatcher) Run(ctx context.Context) {
 		case <-ctx.Done():
 			return
 		case <-ticker.C:
-			d.dispatchOnce()
+			d.dispatchOnce(ctx)
 		}
 	}
 }
 
-func (d *OutboxDispatcher) dispatchOnce() {
+func (d *OutboxDispatcher) dispatchOnce(ctx context.Context) {
 	events, ids, err := d.Repo.FindUnpublished(d.BatchSize)
 	if err != nil {
 		d.Logger.Error("error finding unpublished outbox events: "+err.Error(), nil)
@@ -51,7 +51,7 @@ func (d *OutboxDispatcher) dispatchOnce() {
 			Payload: payload,
 		}
 
-		if err := d.EventBus.Publish(domainEvent); err != nil {
+		if err := d.EventBus.Publish(ctx, domainEvent); err != nil {
 			d.Logger.Error("error publishing event in eventbus: "+err.Error(), nil)
 			continue
 		}

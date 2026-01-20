@@ -1,6 +1,7 @@
 package invoice
 
 import (
+	"context"
 	"errors"
 	"time"
 
@@ -28,7 +29,7 @@ func (s *Service) CreateInvoice(id string, amount int64) (*invoice.Invoice, erro
 	return inv, nil
 }
 
-func (s *Service) RequestPayment(invoiceID string) error {
+func (s *Service) RequestPayment(ctx context.Context, invoiceID string) error {
 	inv, err := s.Repo.FindByID(invoiceID)
 	if err != nil {
 		return err
@@ -52,5 +53,5 @@ func (s *Service) RequestPayment(invoiceID string) error {
 		},
 	}
 
-	return s.Recorder.Record(evt)
+	return s.Recorder.Record(ctx, evt)
 }

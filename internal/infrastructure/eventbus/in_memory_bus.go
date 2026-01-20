@@ -1,13 +1,14 @@
 package eventbus
 
 import (
+	"context"
 	"sync"
 
 	"github.com/rcarvalho-pb/payment_project-go/internal/domain/event"
 	"github.com/rcarvalho-pb/payment_project-go/internal/domain/invoice"
 )
 
-type HandlerFunc func(*event.Event) error
+type HandlerFunc func(context.Context, *event.Event) error
 
 type InMemoryBus struct {
 	invoiceRepo invoice.Repository
@@ -29,12 +30,12 @@ func (b *InMemoryBus) Subscribe(eventType event.Type, handler HandlerFunc) {
 	b.handlers[eventType] = append(b.handlers[eventType], handler)
 }
 
-func (b *InMemoryBus) Publish(evt *event.Event) error {
+func (b *InMemoryBus) Publish(ctx context.Context, evt *event.Event) error {
 	b.mu.RLock()
 	defer b.mu.RUnlock()
 
 	for _, handler := range b.handlers[evt.Type] {
-		err := handler(evt)
+		err := handler(ctx, evt)
 		if err != nil {
 			return err
 		}

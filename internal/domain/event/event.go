@@ -1,6 +1,9 @@
 package event
 
-import "slices"
+import (
+	"context"
+	"slices"
+)
 
 type Type uint8
 
@@ -30,5 +33,5 @@ type Event struct {
 }
 
 type EventPublisher interface {
-	Publish(*Event) error
+	Publish(context.Context, *Event) error
 }

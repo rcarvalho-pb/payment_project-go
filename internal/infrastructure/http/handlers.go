@@ -4,7 +4,9 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/google/uuid"
 	appInvoice "github.com/rcarvalho-pb/payment_project-go/internal/application/invoice"
+	"github.com/rcarvalho-pb/payment_project-go/internal/infra/observability"
 )
 
 type InvoiceHandler struct {
@@ -44,7 +46,10 @@ func (h *InvoiceHandler) CreateInvoice(w http.ResponseWriter, r *http.Request) {
 func (h *InvoiceHandler) RequestPayment(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
 
-	if err := h.service.RequestPayment(id); err != nil {
+	cid := uuid.NewString()
+	ctx := observability.WithCorrelationID(r.Context(), cid)
+
+	if err := h.service.RequestPayment(ctx, id); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}

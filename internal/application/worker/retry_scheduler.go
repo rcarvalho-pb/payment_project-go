@@ -1,6 +1,7 @@
 package worker
 
 import (
+	"context"
 	"errors"
 	"time"
 
@@ -15,7 +16,7 @@ type RetryScheduler struct {
 	MaxDelay  time.Duration
 }
 
-func (r *RetryScheduler) ScheduleRetry(payload *event.PaymentRequestPayload) error {
+func (r *RetryScheduler) ScheduleRetry(ctx context.Context, payload *event.PaymentRequestPayload) error {
 	if payload.Attempt >= r.MaxRetry {
 		return errors.New("max attempts reached")
 	}
@@ -32,7 +33,7 @@ func (r *RetryScheduler) ScheduleRetry(payload *event.PaymentRequestPayload) err
 
 	go func() {
 		time.Sleep(delay)
-		r.Recorder.Record(&event.Event{
+		r.Recorder.Record(ctx, &event.Event{
 			Type:    event.PaymentRequested,
 			Payload: &nextPayload,
 		})

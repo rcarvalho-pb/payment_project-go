@@ -1,6 +1,7 @@
 package invoice
 
 import (
+	"context"
 	"errors"
 	"log"
 
@@ -12,7 +13,7 @@ type PaymentEventHandler struct {
 	Repo invoice.Repository
 }
 
-func (h *PaymentEventHandler) Handle(evt *event.Event) error {
+func (h *PaymentEventHandler) Handle(ctx context.Context, evt *event.Event) error {
 	switch evt.Type {
 	case event.PaymentSucceeded:
 		payment, ok := evt.Payload.(*event.PaymentSucceededPayload)

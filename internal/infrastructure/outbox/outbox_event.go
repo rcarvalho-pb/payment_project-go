@@ -1,6 +1,7 @@
 package outbox
 
 import (
+	"context"
 	"time"
 
 	"github.com/rcarvalho-pb/payment_project-go/internal/domain/event"
@@ -19,4 +20,5 @@ type OutboxRepository interface {
 	Save(evt *OutboxEvent) error
 	FindUnpublished(limit int) ([]*OutboxEvent, []string, error)
 	MarkPublished(id []string) error
+	CountPending(context.Context) (int, error)
 }

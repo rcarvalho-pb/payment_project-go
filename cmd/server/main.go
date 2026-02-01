@@ -7,9 +7,12 @@ import (
 	"os"
 	"time"
 
+	"github.com/rcarvalho-pb/payment_project-go/internal/application/health"
 	appInvoice "github.com/rcarvalho-pb/payment_project-go/internal/application/invoice"
 	appWorker "github.com/rcarvalho-pb/payment_project-go/internal/application/worker"
 	domainEvent "github.com/rcarvalho-pb/payment_project-go/internal/domain/event"
+	infrahealth "github.com/rcarvalho-pb/payment_project-go/internal/infra/health"
+	healthhttp "github.com/rcarvalho-pb/payment_project-go/internal/infra/http"
 	"github.com/rcarvalho-pb/payment_project-go/internal/infra/logging"
 	"github.com/rcarvalho-pb/payment_project-go/internal/infra/metrics"
 	"github.com/rcarvalho-pb/payment_project-go/internal/infrastructure/eventbus"
@@ -23,13 +26,14 @@ func main() {
 	logger := logging.StdoutLogger{}
 	logger.Info("starting program...", nil)
 	defer logger.Info("ending program...", nil)
-	db := sqlite.NewDB("./db/db.db")
-	// db := sqlite.NewDB("../../db/db.db")
+	// db := sqlite.NewDB("./db/db.db")
+	db := sqlite.NewDB("../../db/db.db")
 	if db == nil {
 		logger.Error("couldn't open db. exiting program", nil)
 		os.Exit(1)
 	}
 	defer db.Close()
+	outboxMetrics := metrics.OutboxCounters{}
 	metrics := metrics.Counters{}
 	bus := eventbus.NewInMemoryBus()
 
@@ -47,6 +51,7 @@ func main() {
 	dispatcher := appWorker.OutboxDispatcher{
 		Repo:         outboxRepo,
 		EventBus:     bus,
+		Metrics:      &outboxMetrics,
 		Logger:       &logger,
 		PollInterval: 1 * time.Second,
 		BatchSize:    10,
@@ -89,6 +94,16 @@ func main() {
 	invoiceHandler := httpapi.NewInvoiceHandler(&invoiceService)
 
 	router := httpapi.NewRouter(invoiceHandler)
+
+	router.Handle("/ready", &healthhttp.ReadyHandler{
+		Checks: []health.Checker{
+			&infrahealth.SQLChecker{DB: db},
+			&infrahealth.OutboxCheck{Repo: outboxRepo},
+		},
+	})
+
+	router.Handle("/metrics", &healthhttp.MetricsHandler{Counters: &metrics, OutboxMetrics: &outboxMetrics})
+	router.HandleFunc("/health", healthhttp.HealthHandler)
 
 	logger.Info("starting server on port :8080", nil)
 	if err := http.ListenAndServe(":8080", router); err != nil {

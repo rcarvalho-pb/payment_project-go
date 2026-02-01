@@ -1,6 +1,8 @@
 package sqlite
 
 import (
+	"context"
+
 	"github.com/jmoiron/sqlx"
 	"github.com/rcarvalho-pb/payment_project-go/internal/infrastructure/outbox"
 )
@@ -61,4 +63,18 @@ func (r *OutboxRepository) MarkPublished(ids []string) error {
 	}
 
 	return tx.Commit()
+}
+
+func (r *OutboxRepository) CountPending(ctx context.Context) (int, error) {
+	stmt := `
+	SELECT COUNT(*) FROM outbox_events WHERE event_type = 1 
+	`
+
+	var count int
+
+	if err := r.db.QueryRow(stmt).Scan(&count); err != nil {
+		return 0, err
+	}
+
+	return count, nil
 }

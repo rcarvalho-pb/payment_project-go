@@ -25,3 +25,15 @@ func (c *Counters) IncSucceeded() {
 func (c *Counters) IncFailed() {
 	atomic.AddUint64(&c.PaymentFailed, 1)
 }
+
+func (c *Counters) Processed() uint64 {
+	return atomic.LoadUint64(&c.PaymentProcessed)
+}
+
+func (c *Counters) Succeeded() uint64 {
+	return atomic.LoadUint64(&c.PaymentProcessed)
+}
+
+func (c *Counters) Failed() uint64 {
+	return atomic.LoadUint64(&c.PaymentProcessed)
+}

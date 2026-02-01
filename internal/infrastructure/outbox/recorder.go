@@ -7,11 +7,13 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/rcarvalho-pb/payment_project-go/internal/domain/event"
+	"github.com/rcarvalho-pb/payment_project-go/internal/infra/metrics"
 	"github.com/rcarvalho-pb/payment_project-go/internal/infra/observability"
 )
 
 type Recorder struct {
-	Repo OutboxRepository
+	Repo    OutboxRepository
+	Metrics metrics.OutboxCounters
 }
 
 func (r *Recorder) Record(ctx context.Context, evt *event.Event) error {
@@ -30,6 +32,8 @@ func (r *Recorder) Record(ctx context.Context, evt *event.Event) error {
 		Published:     false,
 		CreatedAt:     time.Now(),
 	}
+
+	r.Metrics.IncRecorded()
 
 	return r.Repo.Save(outboxEvt)
 }

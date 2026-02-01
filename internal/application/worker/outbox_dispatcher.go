@@ -6,14 +6,17 @@ import (
 	"errors"
 	"time"
 
+	"github.com/rcarvalho-pb/payment_project-go/internal/application/contracts"
 	"github.com/rcarvalho-pb/payment_project-go/internal/domain/event"
 	"github.com/rcarvalho-pb/payment_project-go/internal/infra/logging"
+	"github.com/rcarvalho-pb/payment_project-go/internal/infra/observability"
 	"github.com/rcarvalho-pb/payment_project-go/internal/infrastructure/outbox"
 )
 
 type OutboxDispatcher struct {
 	Repo         outbox.OutboxRepository
 	EventBus     event.EventPublisher
+	Metrics      contracts.OutboxMetrics
 	Logger       logging.Logger
 	PollInterval time.Duration
 	BatchSize    int
@@ -51,11 +54,16 @@ func (d *OutboxDispatcher) dispatchOnce(ctx context.Context) {
 			Payload: payload,
 		}
 
+		if evt.CorrelationID != "" {
+			ctx = observability.WithCorrelationID(ctx, evt.CorrelationID)
+		}
+
 		if err := d.EventBus.Publish(ctx, domainEvent); err != nil {
+			d.Metrics.IncPublishFailed()
 			d.Logger.Error("error publishing event in eventbus: "+err.Error(), nil)
 			continue
 		}
-
+		d.Metrics.IncPublished()
 	}
 	if err := d.Repo.MarkPublished(ids); err != nil {
 		d.Logger.Error("error marking outbox event as published", nil)

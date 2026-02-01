@@ -39,7 +39,8 @@ func (p *PaymentProcessor) Handle(ctx context.Context, evt *event.Event) error {
 		"attempt":    payload.Attempt,
 	}
 
-	if cid, ok := observability.CorrelationIDFromContext(ctx); ok {
+	cid, ok := observability.CorrelationIDFromContext(ctx)
+	if ok {
 		fields["correlation-id"] = cid
 	}
 
@@ -87,6 +88,8 @@ func (p *PaymentProcessor) Handle(ctx context.Context, evt *event.Event) error {
 	}
 
 	p.Logger.Info("payment failed", fields)
+
+	p.Metrics.IncFailed()
 
 	p.Repo.UpdateStatus(paymentID, domainPayment.StatusFailed)
 

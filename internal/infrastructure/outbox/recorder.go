@@ -6,14 +6,14 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/rcarvalho-pb/payment_project-go/internal/application/contracts"
 	"github.com/rcarvalho-pb/payment_project-go/internal/domain/event"
-	"github.com/rcarvalho-pb/payment_project-go/internal/infra/metrics"
 	"github.com/rcarvalho-pb/payment_project-go/internal/infra/observability"
 )
 
 type Recorder struct {
 	Repo    OutboxRepository
-	Metrics metrics.OutboxCounters
+	Metrics contracts.OutboxMetrics
 }
 
 func (r *Recorder) Record(ctx context.Context, evt *event.Event) error {

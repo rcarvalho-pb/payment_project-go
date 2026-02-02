@@ -26,8 +26,8 @@ func main() {
 	logger := logging.StdoutLogger{}
 	logger.Info("starting program...", nil)
 	defer logger.Info("ending program...", nil)
-	// db := sqlite.NewDB("./db/db.db")
-	db := sqlite.NewDB("../../db/db.db")
+	db := sqlite.NewDB("./db/db.db")
+	// db := sqlite.NewDB("../../db/db.db")
 	if db == nil {
 		logger.Error("couldn't open db. exiting program", nil)
 		os.Exit(1)
@@ -65,7 +65,8 @@ func main() {
 	paymentExecutor := infraPayment.PaymentExecutor{}
 
 	recorder := outbox.Recorder{
-		Repo: outboxRepo,
+		Repo:    outboxRepo,
+		Metrics: &outboxMetrics,
 	}
 
 	retry := appWorker.RetryScheduler{

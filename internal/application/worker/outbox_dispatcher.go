@@ -60,7 +60,7 @@ func (d *OutboxDispatcher) dispatchOnce(ctx context.Context) {
 
 		if err := d.EventBus.Publish(ctx, domainEvent); err != nil {
 			d.Metrics.IncPublishFailed()
-			d.Logger.Error("error publishing event in eventbus: "+err.Error(), nil)
+			d.Logger.Error("error publ fishing event in eventbus: "+err.Error(), nil)
 			continue
 		}
 		d.Metrics.IncPublished()

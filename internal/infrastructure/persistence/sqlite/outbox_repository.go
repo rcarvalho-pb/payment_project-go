@@ -20,11 +20,8 @@ func (r *OutboxRepository) Save(evt *outbox.OutboxEvent) error {
 	INSERT INTO outbox_events (id, correlation_id, event_type, payload, published, created_at) VALUES (?, ?, ?, ?, ?, ?)
 	`
 
-	if _, err := r.db.Exec(stmt, evt.ID, evt.CorrelationID, evt.Type, evt.Payload, evt.Published, evt.CreatedAt); err != nil {
-		return err
-	}
-
-	return nil
+	_, err := r.db.Exec(stmt, evt.ID, evt.CorrelationID, evt.Type, evt.Payload, evt.Published, evt.CreatedAt)
+	return err
 }
 
 func (r *OutboxRepository) FindUnpublished(limit int) ([]*outbox.OutboxEvent, []string, error) {

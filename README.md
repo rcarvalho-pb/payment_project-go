@@ -36,7 +36,7 @@ It was designed as a **production-grade backend case study**, not just a CRUD AP
 1. Clone the repository
 
 ```bash
-git clone https://github.com/your-username/payment-microservice
+git clone https://github.com/rcarvalho-pb/payment_project-go
 ```
 
 2. Install dependencies
@@ -55,13 +55,7 @@ go run cmd/server/main.go
 
 ## Configuration
 
-Currently the system runs **in-memory** for simplicity and testing.
-
-No external dependencies are required.
-
 Future roadmap includes:
-- SQLite persistence
-- Outbox pattern
 - Prometheus metrics export
 - Distributed tracing support
 
@@ -235,19 +229,19 @@ Returns all invoices and their current status.
 
 ---
 
-## Testing Strategy
+<!-- ## Testing Strategy -->
 
-The project includes tests covering:
+<!-- The project includes tests covering: -->
 
-- Successful payment flow
-- Failure and retry flow
-- Idempotency guarantees
-- Concurrency scenarios
-- Metrics validation
+<!-- - Successful payment flow -->
+<!-- - Failure and retry flow -->
+<!-- - Idempotency guarantees -->
+<!-- - Concurrency scenarios -->
+<!-- - Metrics validation -->
 
-Tests validate behavior, not implementation details.
+<!-- Tests validate behavior, not implementation details. -->
 
----
+<!-- --- -->
 
 ## Why This Project Matters
 

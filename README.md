@@ -56,6 +56,7 @@ go run cmd/server/main.go
 ## Configuration
 
 Future roadmap includes:
+- Transactional Outbox Pattern to guarantee atomic persistence and event publishing
 - Prometheus metrics export
 - Distributed tracing support
 

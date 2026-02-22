@@ -41,6 +41,14 @@ type Invoice struct {
 	DueDate   time.Time `db:"due_date"`
 }
 
+type InvoiceDTO struct {
+	ID        string    `json:"id"`
+	Amount    int64     `json:"amount"`
+	Status    string    `json:"status"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
 func NewInvoice(id string, amount int64) *Invoice {
 	return &Invoice{
 		ID:        id,

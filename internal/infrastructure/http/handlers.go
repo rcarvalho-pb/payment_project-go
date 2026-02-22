@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/uuid"
 	appInvoice "github.com/rcarvalho-pb/payment_project-go/internal/application/invoice"
+	"github.com/rcarvalho-pb/payment_project-go/internal/domain/invoice"
 	"github.com/rcarvalho-pb/payment_project-go/internal/infra/observability"
 )
 
@@ -55,4 +56,26 @@ func (h *InvoiceHandler) RequestPayment(w http.ResponseWriter, r *http.Request) 
 	}
 
 	w.WriteHeader(http.StatusAccepted)
+}
+
+func (h *InvoiceHandler) GetInvoices(w http.ResponseWriter, r *http.Request) {
+	invoices, err := h.service.Repo.FindAll()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	invoicesDTO := make([]invoice.InvoiceDTO, 0)
+
+	for i := range invoices {
+		invoicesDTO = append(invoicesDTO, invoice.InvoiceDTO{
+			ID:        invoices[i].ID,
+			Amount:    invoices[i].Amount,
+			Status:    invoices[i].Status.String(),
+			CreatedAt: invoices[i].CreatedAt,
+			UpdatedAt: invoices[i].UpdatedAt,
+		})
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(&invoicesDTO)
 }

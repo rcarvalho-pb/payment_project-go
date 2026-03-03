@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Payment Service Demo</title>
+  <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+  <style>
+    body { font-family: Arial; margin: 40px; }
+    table { border-collapse: collapse; width: 100%; }
+    th, td { padding: 8px; border: 1px solid #ddd; }
+    .paid { color: green; font-weight: bold; }
+    .failed { color: red; font-weight: bold; }
+    .processing { color: orange; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <h1>💳 Payment Service Demo</h1>
+  {{ template "content" . }}
+</body>
+</html>

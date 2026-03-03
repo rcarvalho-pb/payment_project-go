@@ -55,3 +55,7 @@ func (s *Service) RequestPayment(ctx context.Context, invoiceID string) error {
 
 	return s.Recorder.Record(ctx, evt)
 }
+
+func (s *Service) ListInvoices() ([]*invoice.Invoice, error) {
+	return s.Repo.FindAll()
+}

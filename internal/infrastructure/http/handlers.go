@@ -2,7 +2,11 @@ package httpapi
 
 import (
 	"encoding/json"
+	"fmt"
+	"html/template"
 	"net/http"
+	"strconv"
+	"strings"
 
 	"github.com/google/uuid"
 	appInvoice "github.com/rcarvalho-pb/payment_project-go/internal/application/invoice"
@@ -11,7 +15,8 @@ import (
 )
 
 type InvoiceHandler struct {
-	service *appInvoice.Service
+	service   *appInvoice.Service
+	templates *template.Template
 }
 
 type CreateInvoice struct {
@@ -20,8 +25,16 @@ type CreateInvoice struct {
 }
 
 func NewInvoiceHandler(service *appInvoice.Service) *InvoiceHandler {
+	funcMap := template.FuncMap{
+		"lower": strings.ToLower,
+	}
+	tmpl := template.Must(
+		template.New("").Funcs(funcMap).
+			ParseGlob("internal/infrastructure/http/views/*.html"),
+	)
 	return &InvoiceHandler{
-		service: service,
+		service:   service,
+		templates: tmpl,
 	}
 }
 
@@ -78,4 +91,65 @@ func (h *InvoiceHandler) GetInvoices(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(&invoicesDTO)
+}
+
+func (h *InvoiceHandler) Index(w http.ResponseWriter, r *http.Request) {
+	err := h.templates.ExecuteTemplate(w, "layout.html", nil)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+}
+
+func (h *InvoiceHandler) ListInvoices(w http.ResponseWriter, r *http.Request) {
+	invoices, err := h.service.ListInvoices()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	err = h.templates.ExecuteTemplate(w, "invoices_table.html", invoices)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+}
+
+func (h *InvoiceHandler) CreateInvoiceWeb(w http.ResponseWriter, r *http.Request) {
+	id := r.FormValue("id")
+	amountStr := r.FormValue("amount")
+	amount, _ := strconv.Atoi(amountStr)
+	if amount == 0 {
+		amount = 1000 // valor default para demo
+	}
+
+	_, _ = h.service.CreateInvoice(id, int64(amount))
+
+	h.ListInvoices(w, r)
+}
+
+func (h *InvoiceHandler) PayInvoice(w http.ResponseWriter, r *http.Request) {
+	id := r.PathValue("id")
+
+	cid := uuid.NewString()
+	ctx := observability.WithCorrelationID(r.Context(), cid)
+
+	err := h.service.RequestPayment(ctx, id)
+
+	fmt.Println("id:", id, "- err:", err.Error())
+
+	w.WriteHeader(http.StatusOK)
+}
+
+func (h *InvoiceHandler) GetInvoice(w http.ResponseWriter, r *http.Request) {
+	id := r.PathValue("id")
+	details, err := h.service.Repo.FindByID(id)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	err = h.templates.ExecuteTemplate(w, "invoice_details.html", details)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 }

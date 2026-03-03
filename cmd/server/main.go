@@ -96,15 +96,15 @@ func main() {
 
 	router := httpapi.NewRouter(invoiceHandler)
 
-	router.Handle("/ready", &healthhttp.ReadyHandler{
+	router.Handle("GET /ready", &healthhttp.ReadyHandler{
 		Checks: []health.Checker{
 			&infrahealth.SQLChecker{DB: db},
 			&infrahealth.OutboxCheck{Repo: outboxRepo},
 		},
 	})
 
-	router.Handle("/metrics", &healthhttp.MetricsHandler{Counters: &metrics, OutboxMetrics: &outboxMetrics})
-	router.HandleFunc("/health", healthhttp.HealthHandler)
+	router.Handle("GET /metrics", &healthhttp.MetricsHandler{Counters: &metrics, OutboxMetrics: &outboxMetrics})
+	router.HandleFunc("GET /health", healthhttp.HealthHandler)
 
 	logger.Info("starting server on port :8080", nil)
 	if err := http.ListenAndServe(":8080", router); err != nil {

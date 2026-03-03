@@ -1,0 +1,32 @@
+<table id="invoices">
+  <tr>
+    <th>ID</th>
+    <th>Amount</th>
+    <th>Status</th>
+    <th>Actions</th>
+  </tr>
+
+  {{ range . }}
+  <tr>
+    <td>
+      <a 
+        hx-get="/invoices/{{ .ID }}"
+        hx-target="#details"
+        hx-swap="innerHTML">
+        {{ .ID }}
+      </a>
+    </td>
+    <td>{{ .Amount }}</td>
+    <td class="{{ .Status.String }}">{{ .Status }}</td>
+    <td>
+      <button 
+        hx-post="/invoices/{{ .ID }}/pay"
+        hx-swap="none">
+        Pay
+      </button>
+    </td>
+  </tr>
+  {{ end }}
+</table>
+
+<div id="details"></div>

@@ -1,0 +1,11 @@
+<h3>Invoice {{ .Invoice.ID }}</h3>
+<p>Status: {{ .Invoice.Status }}</p>
+
+<h4>Payment Attempts</h4>
+<ul>
+  {{ range .Payments }}
+  <li>
+    Attempt {{ .Attempt }} - {{ .Status }}
+  </li>
+  {{ end }}
+</ul>

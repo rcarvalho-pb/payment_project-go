@@ -1,0 +1,35 @@
+<tr 
+  id="invoice-{{ .ID }}"
+  hx-get="/invoices/{{ .ID }}/row"
+  {{ if not .Status.IsFinal }}
+  hx-trigger="every 2s"
+  {{ end }}
+  hx-swap="outerHTML">
+
+  <td>
+    <a 
+      hx-get="/invoices/{{ .ID }}"
+      hx-target="#details"
+      hx-swap="innerHTML">
+      {{ .ID }}
+    </a>
+  </td>
+
+  <td>{{ .Amount }}</td>
+
+  <td class="{{ .Status.String }}">
+    {{ .Status.String }}
+  </td>
+
+  <td>
+    {{ if .Status.IsFinal }}
+      <button disabled>Pay</button>
+    {{ else }}
+    <button 
+      hx-post="/invoices/{{ .ID }}/pay"
+      hx-swap="none">
+      Pay
+    </button>
+    {{ end }}
+  </td>
+</tr>

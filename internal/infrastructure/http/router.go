@@ -10,6 +10,7 @@ func NewRouter(handler *InvoiceHandler) *http.ServeMux {
 	mux.HandleFunc("POST /invoices", handler.CreateInvoiceWeb)
 	mux.HandleFunc("POST /invoices/{id}/pay", handler.PayInvoice)
 	mux.HandleFunc("GET /invoices/{id}", handler.GetInvoice)
+	mux.HandleFunc("GET /invoices/{id}/row", handler.InvoiceRow)
 
 	mux.HandleFunc("POST /api/invoices", handler.CreateInvoice)
 	mux.HandleFunc("POST /api/invoices/{id}/pay", handler.RequestPayment)

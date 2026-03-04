@@ -72,7 +72,7 @@ func (h *InvoiceHandler) RequestPayment(w http.ResponseWriter, r *http.Request) 
 }
 
 func (h *InvoiceHandler) GetInvoices(w http.ResponseWriter, r *http.Request) {
-	invoices, err := h.service.Repo.FindAll()
+	invoices, err := h.service.ListInvoices()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -121,7 +121,12 @@ func (h *InvoiceHandler) CreateInvoiceWeb(w http.ResponseWriter, r *http.Request
 		amount = 1000 // valor default para demo
 	}
 
-	_, _ = h.service.CreateInvoice(id, int64(amount))
+	_, err := h.service.CreateInvoice(id, int64(amount))
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		h.templates.ExecuteTemplate(w, "alert.html", err.Error())
+		return
+	}
 
 	h.ListInvoices(w, r)
 }
@@ -133,8 +138,12 @@ func (h *InvoiceHandler) PayInvoice(w http.ResponseWriter, r *http.Request) {
 	ctx := observability.WithCorrelationID(r.Context(), cid)
 
 	err := h.service.RequestPayment(ctx, id)
-
-	fmt.Println("id:", id, "- err:", err.Error())
+	if err != nil {
+		fmt.Println("err:", err.Error())
+		w.WriteHeader(http.StatusBadRequest)
+		h.templates.ExecuteTemplate(w, "alert.html", err.Error())
+		return
+	}
 
 	w.WriteHeader(http.StatusOK)
 }
@@ -149,6 +158,21 @@ func (h *InvoiceHandler) GetInvoice(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = h.templates.ExecuteTemplate(w, "invoice_details.html", details)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+}
+
+func (h *InvoiceHandler) InvoiceRow(w http.ResponseWriter, r *http.Request) {
+	id := r.PathValue("id")
+
+	invoice, err := h.service.Repo.FindByID(id)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	err = h.templates.ExecuteTemplate(w, "invoice_row.html", invoice)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}

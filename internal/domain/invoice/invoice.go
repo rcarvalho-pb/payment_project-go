@@ -32,6 +32,10 @@ func (s Status) String() string {
 	return status[s-1]
 }
 
+func (s Status) IsFinal() bool {
+	return s == StatusPaid || s == StatusFailed || s == StatusCanceled
+}
+
 type Invoice struct {
 	ID        string    `db:"id"`
 	Amount    int64     `db:"amount"`

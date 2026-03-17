@@ -2,7 +2,6 @@ package httpapi
 
 import (
 	"encoding/json"
-	"fmt"
 	"html/template"
 	"net/http"
 	"strconv"
@@ -139,8 +138,7 @@ func (h *InvoiceHandler) PayInvoice(w http.ResponseWriter, r *http.Request) {
 
 	err := h.service.RequestPayment(ctx, id)
 	if err != nil {
-		fmt.Println("err:", err.Error())
-		w.WriteHeader(http.StatusBadRequest)
+		w.WriteHeader(http.StatusOK)
 		h.templates.ExecuteTemplate(w, "alert.html", err.Error())
 		return
 	}

@@ -4,11 +4,6 @@
 
 <form 
   hx-post="/invoices"
-  hx-target="#alerts"
-  hx-swap="innerHTML">
-
-<form 
-  hx-post="/invoices"
   hx-target="#invoices"
   hx-swap="outerHTML">
 
@@ -26,6 +21,7 @@
 <div 
   id="invoices"
   hx-get="/invoices"
+  hx-trigger= "load"
   hx-swap="outerHTML">
 </div>
 

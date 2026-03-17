@@ -27,7 +27,8 @@
     {{ else }}
     <button 
       hx-post="/invoices/{{ .ID }}/pay"
-      hx-swap="none">
+      hx-target="#alerts"
+      hx-swap="innerHTML">
       Pay
     </button>
     {{ end }}

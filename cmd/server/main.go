@@ -16,7 +16,6 @@ import (
 	"github.com/rcarvalho-pb/payment_project-go/internal/infra/logging"
 	"github.com/rcarvalho-pb/payment_project-go/internal/infra/metrics"
 	"github.com/rcarvalho-pb/payment_project-go/internal/infrastructure/eventbus"
-	httpapi "github.com/rcarvalho-pb/payment_project-go/internal/infrastructure/http"
 	"github.com/rcarvalho-pb/payment_project-go/internal/infrastructure/outbox"
 	infraPayment "github.com/rcarvalho-pb/payment_project-go/internal/infrastructure/payment"
 	"github.com/rcarvalho-pb/payment_project-go/internal/infrastructure/persistence/sqlite"
@@ -90,24 +89,5 @@ func main() {
 	invoiceService := appInvoice.Service{
 		Repo:     invoiceRepo,
 		Recorder: &recorder,
-	}
-
-	invoiceHandler := httpapi.NewInvoiceHandler(&invoiceService)
-
-	router := httpapi.NewRouter(invoiceHandler)
-
-	router.Handle("GET /ready", &healthhttp.ReadyHandler{
-		Checks: []health.Checker{
-			&infrahealth.SQLChecker{DB: db},
-			&infrahealth.OutboxCheck{Repo: outboxRepo},
-		},
-	})
-
-	router.Handle("GET /metrics", &healthhttp.MetricsHandler{Counters: &metrics, OutboxMetrics: &outboxMetrics})
-	router.HandleFunc("GET /health", healthhttp.HealthHandler)
-
-	logger.Info("starting server on port :8080", nil)
-	if err := http.ListenAndServe(":8080", router); err != nil {
-		log.Fatal(err)
 	}
 }

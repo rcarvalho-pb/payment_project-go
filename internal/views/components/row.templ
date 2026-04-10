@@ -3,7 +3,7 @@ package components
 import "github.com/rcarvalho-pb/payment_project-go/internal/domain/invoice"
 import "fmt"
 
-templ InvoiceRow(inv invoice.Invoice) {
+templ InvoiceRow(inv *invoice.Invoice) {
 	<tr
 		id={ fmt.Sprintf("%s", inv.ID) }
 		if !inv.Status.IsFinal() {

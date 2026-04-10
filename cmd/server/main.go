@@ -2,24 +2,26 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
 	"time"
 
-	"github.com/rcarvalho-pb/payment_project-go/internal/application/health"
 	appInvoice "github.com/rcarvalho-pb/payment_project-go/internal/application/invoice"
 	appWorker "github.com/rcarvalho-pb/payment_project-go/internal/application/worker"
 	domainEvent "github.com/rcarvalho-pb/payment_project-go/internal/domain/event"
-	infrahealth "github.com/rcarvalho-pb/payment_project-go/internal/infra/health"
-	healthhttp "github.com/rcarvalho-pb/payment_project-go/internal/infra/http"
+	web_handler "github.com/rcarvalho-pb/payment_project-go/internal/handler/web"
 	"github.com/rcarvalho-pb/payment_project-go/internal/infra/logging"
 	"github.com/rcarvalho-pb/payment_project-go/internal/infra/metrics"
 	"github.com/rcarvalho-pb/payment_project-go/internal/infrastructure/eventbus"
 	"github.com/rcarvalho-pb/payment_project-go/internal/infrastructure/outbox"
 	infraPayment "github.com/rcarvalho-pb/payment_project-go/internal/infrastructure/payment"
 	"github.com/rcarvalho-pb/payment_project-go/internal/infrastructure/persistence/sqlite"
+	"github.com/rcarvalho-pb/payment_project-go/internal/router"
 )
+
+const PORT = "8080"
 
 func main() {
 	logger := logging.StdoutLogger{}
@@ -89,5 +91,18 @@ func main() {
 	invoiceService := appInvoice.Service{
 		Repo:     invoiceRepo,
 		Recorder: &recorder,
+	}
+
+	webHandler := web_handler.NewWebHandler(invoiceService)
+
+	r := router.NewRouter(webHandler)
+
+	server := http.Server{
+		Addr:    fmt.Sprintf(":%s", PORT),
+		Handler: r,
+	}
+
+	if err := server.ListenAndServe(); err != nil {
+		log.Fatal(err)
 	}
 }

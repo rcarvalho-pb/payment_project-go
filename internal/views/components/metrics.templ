@@ -1,0 +1,33 @@
+package components
+
+import "encoding/json"
+
+type ChartData struct {
+	Labels []string `json:"labels"`
+	Values []int    `json:"values"`
+}
+
+templ MetricsDashboard(data ChartData) {
+	// Transformamos o struct Go em JSON para o atributo do HTML
+	{{ jsonData, _ := json.Marshal(data) }}
+	<div class="card shadow-sm">
+		<div class="card-body">
+			<h5 class="card-title">Métricas de Processamento</h5>
+			<canvas
+				id="metricsChart"
+				data-chart={ string(jsonData) }
+				hx-get="/metrics/update"
+				hx-trigger="every 30s"
+				hx-on::after-request="updateChart(event.detail.xhr.response)"
+			></canvas>
+		</div>
+	</div>
+	<script>
+    // L��gica simples para inicializar ou atualizar o gráfico
+    document.addEventListener("DOMContentLoaded", () => {
+        const el = document.getElementById('metricsChart');
+        const data = JSON.parse(el.getAttribute('data-chart'));
+        initMyChart(el, data);
+    });
+</script>
+}

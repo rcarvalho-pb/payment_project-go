@@ -1,8 +1,9 @@
 package views
 
 import "github.com/rcarvalho-pb/payment_project-go/internal/domain/invoice"
+import "github.com/rcarvalho-pb/payment_project-go/internal/views/components"
 
-templ Layout(invoices invoice.Invoice) {
+templ Layout(invoices []*invoice.Invoice) {
 	<!DOCTYPE html>
 	<html lang="pt-br">
 		<head>
@@ -62,7 +63,7 @@ templ Layout(invoices invoice.Invoice) {
 									</thead>
 									<tbody id="table-body">
 										for _, inv := range invoices {
-											@components.ItemRow(item)
+											@components.InvoiceRow(inv)
 										}
 									</tbody>
 								</table>

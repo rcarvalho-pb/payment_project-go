@@ -9,8 +9,9 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 import "github.com/rcarvalho-pb/payment_project-go/internal/domain/invoice"
+import "github.com/rcarvalho-pb/payment_project-go/internal/views/components"
 
-func Layout(invoices invoice.Invoice) templ.Component {
+func Layout(invoices []*invoice.Invoice) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -36,7 +37,7 @@ func Layout(invoices invoice.Invoice) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		for _, inv := range invoices {
-			templ_7745c5c3_Err = components.ItemRow(item).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = components.InvoiceRow(inv).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

@@ -1,0 +1,8 @@
+package components
+
+templ LogPanel() {
+	<div class="bg-dark text-success p-3 rounded" style="height: 300px; overflow-y: auto;">
+		<h6>System Logs [Live]</h6>
+		<div hx-ext="sse" sse-connect="/logs" sse-swap="message" hx-swap="afterbegin"></div>
+	</div>
+}

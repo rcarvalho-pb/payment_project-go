@@ -11,6 +11,7 @@ import (
 	appInvoice "github.com/rcarvalho-pb/payment_project-go/internal/application/invoice"
 	appWorker "github.com/rcarvalho-pb/payment_project-go/internal/application/worker"
 	domainEvent "github.com/rcarvalho-pb/payment_project-go/internal/domain/event"
+	rest_handler "github.com/rcarvalho-pb/payment_project-go/internal/handler/rest"
 	web_handler "github.com/rcarvalho-pb/payment_project-go/internal/handler/web"
 	"github.com/rcarvalho-pb/payment_project-go/internal/infra/logging"
 	"github.com/rcarvalho-pb/payment_project-go/internal/infra/metrics"
@@ -88,14 +89,15 @@ func main() {
 
 	bus.Subscribe(domainEvent.PaymentRequested, processor.Handle)
 
-	invoiceService := appInvoice.Service{
+	invoiceService := &appInvoice.Service{
 		Repo:     invoiceRepo,
 		Recorder: &recorder,
 	}
 
 	webHandler := web_handler.NewWebHandler(invoiceService)
+	restHandler := rest_handler.NewRestHandler(invoiceService)
 
-	r := router.NewRouter(webHandler)
+	r := router.NewRouter(webHandler, restHandler)
 
 	server := http.Server{
 		Addr:    fmt.Sprintf(":%s", PORT),

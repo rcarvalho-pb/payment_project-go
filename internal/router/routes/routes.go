@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"net/http"
 
+	rest_handler "github.com/rcarvalho-pb/payment_project-go/internal/handler/rest"
 	web_handler "github.com/rcarvalho-pb/payment_project-go/internal/handler/web"
+	"github.com/rcarvalho-pb/payment_project-go/internal/middleware"
 )
 
 type Route struct {
@@ -13,14 +15,16 @@ type Route struct {
 	Function func(http.ResponseWriter, *http.Request)
 }
 
-func ConfigRouter(r *http.ServeMux, webHandler *web_handler.WebHandler) {
+func ConfigRouter(r *http.ServeMux, webHandler *web_handler.WebHandler, restHandler *rest_handler.RestHandler) {
 	var routes []Route
 
 	webRoutes := getWebRoutes(webHandler)
+	restRoutes := getRestRoutes(restHandler)
 
 	routes = append(routes, webRoutes...)
+	routes = append(routes, restRoutes...)
 
 	for _, route := range routes {
-		r.HandleFunc(fmt.Sprintf("%s %s", route.Method, route.URI), http.HandlerFunc(route.Function))
+		r.Handle(fmt.Sprintf("%s %s", route.Method, route.URI), middleware.LogginMiddleware(http.HandlerFunc(route.Function)))
 	}
 }

@@ -50,7 +50,7 @@ func MetricsDashboard(data ChartData) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "\" hx-get=\"/metrics/update\" hx-trigger=\"every 30s\" hx-on::after-request=\"updateChart(event.detail.xhr.response)\"></canvas></div></div><script>\n    // L��gica simples para inicializar ou atualizar o gráfico\n    document.addEventListener(\"DOMContentLoaded\", () => {\n        const el = document.getElementById('metricsChart');\n        const data = JSON.parse(el.getAttribute('data-chart'));\n        initMyChart(el, data);\n    });\n</script>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "\" hx-get=\"/metrics/update\" hx-trigger=\"every 30s\" hx-on::after-request=\"updateChart(event.detail.xhr.response)\"></canvas></div></div><script>\n    document.addEventListener(\"DOMContentLoaded\", () => {\n        const el = document.getElementById('metricsChart');\n        const data = JSON.parse(el.getAttribute('data-chart'));\n        initMyChart(el, data);\n    });\n</script>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

@@ -3,27 +3,27 @@ package components
 import "fmt"
 import "github.com/rcarvalho-pb/payment_project-go/internal/domain/invoice"
 
-templ ItemDetailsModal(item invoice.Invoice) {
+templ ItemDetailsModal(inv *invoice.Invoice) {
 	<div class="modal fade" id="detailsModal" tabindex="-1" aria-hidden="true">
 		<div class="modal-dialog modal-lg">
 			<div class="modal-content">
 				<div class="modal-header">
-					<h5 class="modal-title">Detalhes do Item #{ fmt.Sprint(item.ID) }</h5>
+					<h5 class="modal-title">Detalhes do Item #{ fmt.Sprint(inv.ID) }</h5>
 					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 				</div>
 				<div class="modal-body">
 					<div class="row">
 						<div class="col-md-6">
-							<p><strong>Valor:</strong> { item.Amount }</p>
-							<p><strong>Status Atual:</strong> { item.Status }</p>
+							<p><strong>Valor:</strong> { inv.Amount }</p>
+							<p><strong>Status Atual:</strong> { inv.Status }</p>
 						</div>
 						<div class="col-md-6 text-end">
-							<small class="text-muted">Data de Criação: { item.CreatedAt.Format("02/01/2006") }</small>
+							<small class="text-muted">Data de Criação: { inv.CreatedAt.Format("02/01/2006") }</small>
 						</div>
 					</div>
 					<hr/>
 					<h6>Metadados Adicionais</h6>
-					<pre class="bg-light p-2">{ `{"id": ` + fmt.Sprint(item.ID) + `, "info": "detalhes adicionais"}` }</pre>
+					<pre class="bg-light p-2">{ `{"id": ` + inv.ID + `, "info": "detalhes adicionais"}` }</pre>
 				</div>
 				<div class="modal-footer">
 					<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>

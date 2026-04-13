@@ -23,7 +23,6 @@ templ MetricsDashboard(data ChartData) {
 		</div>
 	</div>
 	<script>
-    // L��gica simples para inicializar ou atualizar o gráfico
     document.addEventListener("DOMContentLoaded", () => {
         const el = document.getElementById('metricsChart');
         const data = JSON.parse(el.getAttribute('data-chart'));

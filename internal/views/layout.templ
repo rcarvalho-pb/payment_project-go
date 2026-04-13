@@ -37,7 +37,7 @@ templ Layout(invoices []*invoice.Invoice) {
 						<div class="card shadow-sm mb-4">
 							<div class="card-body">
 								<h5 class="card-title">Novo Elemento</h5>
-								<form hx-post="/items" hx-target="#table-body" hx-swap="beforeend" class="row g-3">
+								<form hx-post="/invoice" hx-target="#table-body" hx-swap="beforeend" class="row g-3">
 									<div class="col-md-4">
 										<input type="number" name="id" class="form-control" placeholder="ID" required/>
 									</div>

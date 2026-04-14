@@ -7,7 +7,7 @@ import (
 )
 
 func getRestRoutes(restHandler *rest_handler.RestHandler) []Route {
-	const resource = "/invoices"
+	const resource = "/api/invoices"
 	return []Route{
 		{
 			URI:      resource,

@@ -36,6 +36,10 @@ func (s Status) IsFinal() bool {
 	return s == StatusPaid || s == StatusFailed || s == StatusCanceled
 }
 
+func (s Status) IsProcessing() bool {
+	return s == StatusProcessing
+}
+
 type Invoice struct {
 	ID        string    `db:"id"`
 	Amount    int64     `db:"amount"`

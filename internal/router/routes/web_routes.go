@@ -14,5 +14,20 @@ func getWebRoutes(webHandler *web_handler.WebHandler) []Route {
 			Method:   http.MethodGet,
 			Function: webHandler.HandleIndex,
 		},
+		{
+			URI:      resource + "invoices",
+			Method:   http.MethodPost,
+			Function: webHandler.HandleNewInvoice,
+		},
+		{
+			URI:      resource + "invoices/{id}/pay",
+			Method:   http.MethodPost,
+			Function: webHandler.HandlePayment,
+		},
+		{
+			URI:      resource + "invoices/{id}/details",
+			Method:   http.MethodGet,
+			Function: webHandler.HandleDetails,
+		},
 	}
 }

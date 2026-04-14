@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/google/uuid"
@@ -29,6 +30,25 @@ func (h *WebHandler) HandleIndex(w http.ResponseWriter, r *http.Request) {
 		log.Println("error getting invoices")
 	}
 	views.Layout(invoices).Render(r.Context(), w)
+}
+
+func (h *WebHandler) HandleNewInvoice(w http.ResponseWriter, r *http.Request) {
+	id := r.FormValue("id")
+	amount, err := strconv.ParseInt(r.FormValue("amount"), 10, 10)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	log.Println(id, amount)
+
+	inv, err := h.service.CreateInvoice(id, int64(amount))
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	log.Printf("%+v\n", inv)
+
+	components.InvoiceRow(inv).Render(r.Context(), w)
 }
 
 func (h *WebHandler) HandlePayment(w http.ResponseWriter, r *http.Request) {

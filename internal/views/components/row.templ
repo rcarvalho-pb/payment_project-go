@@ -4,53 +4,44 @@ import "github.com/rcarvalho-pb/payment_project-go/internal/domain/invoice"
 import "fmt"
 
 templ InvoiceRow(inv *invoice.Invoice) {
-	<tr
-		id={ fmt.Sprintf("%s", inv.ID) }
-		if !inv.Status.IsFinal() {
-			hx-get={ fmt.Sprintf("/invoice/%s/status", inv.ID) }
-			hx-trigger="every 2s"
-			hx-swap="outerHTML"
-		}
-	>
-		<td>{ inv.ID }</td>
-		<td>{ inv.Amount }</td>
-		<td>
-			<span class={ "badge " + getStatusClass(inv.Status.String()) }>
-				{ inv.Status }
-			</span>
-		</td>
-		<td>
-			<button
-				class="btn btn-sm btn-primary"
-				hx-post={ fmt.Sprintf("/items/%s/process", inv.ID) }
-				hx-target={ fmt.Sprintf("#item-%s", inv.ID) }
-				hx-swap="outerHTML"
-				if inv.Status.IsFinal() ||
-            inv.Status.String()=="Processing" {
-					disabled
-				}
-			>
-				Processar
-			</button>
-			<button
-				class="btn btn-sm btn-info ms-2"
-				hx-get={ fmt.Sprintf("/items/%s/details", inv.ID) }
-				hx-target="#modal-container"
-				onclick="new bootstrap.Modal('#detailsModal').show()"
-			>
-				Detalhes
-			</button>
-		</td>
-	</tr>
+<tr id={ fmt.Sprintf("inv-%s", inv.ID) } if inv.Status.IsProcessing() { hx-get={ fmt.Sprintf("/invoice/%s/status",
+    inv.ID) } hx-trigger="every 2s" hx-swap="outerHTML" }>
+    <td>{ inv.ID }</td>
+    <td>{ inv.Amount }</td>
+    <td>
+        <span class={ "badge " + getStatusClass(inv.Status.String()) }>
+            { inv.Status }
+        </span>
+    </td>
+    <td>
+        <button class="btn btn-sm btn-primary"
+            hx-post={ fmt.Sprintf("/invoices/%s/pay", inv.ID) }
+            hx-target={ fmt.Sprintf("#inv-%s", inv.ID) }
+            hx-swap="outerHTML"
+            if inv.Status.IsProcessing() || inv.Status.IsFinal() { disabled }>
+            if inv.Status.IsProcessing() {
+            //<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+            Processando
+            } else {
+            Processar
+            }
+        </button>
+
+        <button class="btn btn-sm btn-info ms-2" hx-get={ fmt.Sprintf("/invoices/%s/details", inv.ID) }
+            hx-target="#modal-container">
+            Detalhes
+        </button>
+    </td>
+</tr>
 }
 
 func getStatusClass(s string) string {
-	switch s {
-	case "":
-		return "bg-success"
-	case "Processando":
-		return "bg-warning"
-	default:
-		return "bg-secondary"
-	}
+switch s {
+case "":
+return "bg-success"
+case "Processando":
+return "bg-warning"
+default:
+return "bg-secondary"
+}
 }

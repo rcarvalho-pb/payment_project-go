@@ -10,11 +10,6 @@ func getWebRoutes(webHandler *web_handler.WebHandler) []Route {
 	const resource = "/"
 	return []Route{
 		{
-			URI:      resource,
-			Method:   http.MethodGet,
-			Function: webHandler.HandleIndex,
-		},
-		{
 			URI:      resource + "invoices",
 			Method:   http.MethodPost,
 			Function: webHandler.HandleNewInvoice,
@@ -28,6 +23,11 @@ func getWebRoutes(webHandler *web_handler.WebHandler) []Route {
 			URI:      resource + "invoices/{id}/details",
 			Method:   http.MethodGet,
 			Function: webHandler.HandleDetails,
+		},
+		{
+			URI:      resource,
+			Method:   http.MethodGet,
+			Function: webHandler.HandleIndex,
 		},
 	}
 }

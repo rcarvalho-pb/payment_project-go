@@ -41,6 +41,16 @@ func (r *InvoiceRepository) FindAll() ([]*invoice.Invoice, error) {
 	return invs, nil
 }
 
+func (r *InvoiceRepository) GetStatus(id string) (uint8, error) {
+	stmt := `SELECT status FROM invoices where id = ?`
+	var status uint8
+	if err := r.db.Get(&status, stmt, id); err != nil {
+		return 0, err
+	}
+
+	return status, nil
+}
+
 func (r *InvoiceRepository) UpdateStatus(id string, status invoice.Status) error {
 	stmt := `UPDATE invoices SET status = ?, updated_at = ? WHERE id = ?`
 	_, err := r.db.Exec(stmt, status, time.Now(), id)

@@ -9,6 +9,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/rcarvalho-pb/payment_project-go/internal/application/invoice"
+	domain "github.com/rcarvalho-pb/payment_project-go/internal/domain/invoice"
 	"github.com/rcarvalho-pb/payment_project-go/internal/infra/observability"
 	"github.com/rcarvalho-pb/payment_project-go/internal/views"
 	"github.com/rcarvalho-pb/payment_project-go/internal/views/components"
@@ -66,6 +67,14 @@ func (h *WebHandler) HandlePayment(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+
+	status, err := h.service.Repo.GetStatus(id)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	inv.Status = domain.Status(status)
 
 	components.InvoiceRow(inv).Render(r.Context(), w)
 }

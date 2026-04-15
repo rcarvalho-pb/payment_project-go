@@ -1,6 +1,7 @@
 package web_handler
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -8,6 +9,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/rcarvalho-pb/payment_project-go/internal/application/contracts"
 	"github.com/rcarvalho-pb/payment_project-go/internal/application/invoice"
 	domain "github.com/rcarvalho-pb/payment_project-go/internal/domain/invoice"
 	"github.com/rcarvalho-pb/payment_project-go/internal/infra/observability"
@@ -17,11 +19,13 @@ import (
 
 type WebHandler struct {
 	service *invoice.Service
+	metrics contracts.PaymentMetrics
 }
 
-func NewWebHandler(service *invoice.Service) *WebHandler {
+func NewWebHandler(service *invoice.Service, metrics contracts.PaymentMetrics) *WebHandler {
 	return &WebHandler{
 		service: service,
+		metrics: metrics,
 	}
 }
 
@@ -30,7 +34,17 @@ func (h *WebHandler) HandleIndex(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Println("error getting invoices")
 	}
-	views.Layout(invoices).Render(r.Context(), w)
+	initialMetrics := components.ChartData{
+		Labels: []string{"pending", "processed", "succeeded", "failed"},
+		Values: []uint64{
+			// Exemplo de como calcular ou buscar os valores atuais
+			h.metrics.Pending(),
+			h.metrics.Processed(),
+			h.metrics.Succeeded(),
+			h.metrics.Failed(),
+		},
+	}
+	views.Layout(invoices, initialMetrics).Render(r.Context(), w)
 }
 
 func (h *WebHandler) HandleNewInvoice(w http.ResponseWriter, r *http.Request) {
@@ -40,14 +54,14 @@ func (h *WebHandler) HandleNewInvoice(w http.ResponseWriter, r *http.Request) {
 		log.Println(err)
 		return
 	}
-	log.Println(id, amount)
 
 	inv, err := h.service.CreateInvoice(id, int64(amount))
 	if err != nil {
 		log.Println(err)
 		return
 	}
-	log.Printf("%+v\n", inv)
+
+	// w.Header().Set("HX-Trigger", "update-charts")
 
 	components.InvoiceRow(inv).Render(r.Context(), w)
 }
@@ -75,6 +89,8 @@ func (h *WebHandler) HandlePayment(w http.ResponseWriter, r *http.Request) {
 	}
 
 	inv.Status = domain.Status(status)
+
+	// w.Header().Set("HX-Trigger", "update-charts")
 
 	components.InvoiceRow(inv).Render(r.Context(), w)
 }
@@ -115,4 +131,20 @@ func (h *WebHandler) HandleDetails(w http.ResponseWriter, r *http.Request) {
 	}
 
 	components.ItemDetailsModal(inv).Render(r.Context(), w)
+}
+
+func (h *WebHandler) HandleMetricsUpdate(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	data := components.ChartData{
+		Labels: []string{"pending", "processed", "succeeded", "failed"},
+		Values: []uint64{
+			// Exemplo de como calcular ou buscar os valores atuais
+			h.metrics.Pending(),
+			h.metrics.Processed(),
+			h.metrics.Succeeded(),
+			h.metrics.Failed(),
+		},
+	}
+	json.NewEncoder(w).Encode(data)
 }

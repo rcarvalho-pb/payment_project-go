@@ -12,7 +12,7 @@ import "encoding/json"
 
 type ChartData struct {
 	Labels []string `json:"labels"`
-	Values []int    `json:"values"`
+	Values []uint64 `json:"values"` // Alterado para uint64 para casar com seus contadores atômicos
 }
 
 func MetricsDashboard(data ChartData) templ.Component {
@@ -44,13 +44,13 @@ func MetricsDashboard(data ChartData) templ.Component {
 		var templ_7745c5c3_Var2 string
 		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(string(jsonData))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/components/metrics.templ`, Line: 18, Col: 33}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/components/metrics.templ`, Line: 17, Col: 45}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "\" hx-get=\"/metrics/update\" hx-trigger=\"every 30s\" hx-on::after-request=\"updateChart(event.detail.xhr.response)\"></canvas></div></div><script>\n    document.addEventListener(\"DOMContentLoaded\", () => {\n        const el = document.getElementById('metricsChart');\n        const data = JSON.parse(el.getAttribute('data-chart'));\n        initMyChart(el, data);\n    });\n</script>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "\" hx-get=\"/invoices/metrics/update\" hx-trigger=\"every 30s, update-charts from:body\" hx-swap=\"none\" hx-on::after-request=\"updateChart(event.detail.xhr.response)\"></canvas></div></div><script>\n        // Inicializa assim que o elemento aparecer no DOM\n        (function() {\n            const el = document.getElementById('metricsChart');\n            if (el && !myChart) { // Evita inicializar duplicado\n                const data = JSON.parse(el.getAttribute('data-chart'));\n                initMyChart(el, data);\n            }\n        })();\n    </script>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

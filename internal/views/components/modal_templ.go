@@ -97,7 +97,7 @@ func ItemDetailsModal(inv *invoice.Invoice) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "</pre></div><div class=\"modal-footer\"><button type=\"button\" class=\"btn btn-secondary\" data-bs-dismiss=\"modal\">Fechar</button></div></div></div></div><script>\n    var myModal = new bootstrap.Modal(document.getElementById(\"itemModal\"));\n    myModal.show();\n\n    document.getElementById('itemModal').addEventListener('hidden-bs-modal', funcion() {\n        this.remove();\n    });\n</script>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "</pre></div><div class=\"modal-footer\"><button type=\"button\" class=\"btn btn-secondary\" data-bs-dismiss=\"modal\">Fechar</button></div></div></div></div><script>\n    var myModal = new bootstrap.Modal(document.getElementById(\"detailsModal\"));\n    myModal.show();\n\n    document.getElementById('detailsModal').addEventListener('hidden-bs-modal', function() {\n        this.remove();\n    });\n</script>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

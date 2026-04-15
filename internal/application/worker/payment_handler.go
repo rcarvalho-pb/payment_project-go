@@ -66,6 +66,7 @@ func (p *PaymentProcessor) Handle(ctx context.Context, evt *event.Event) error {
 
 	paymentSucceeded := p.PaymentExecutor.Execute()
 
+	p.Metrics.DeincPending()
 	p.Metrics.IncProcessed()
 
 	if paymentSucceeded {

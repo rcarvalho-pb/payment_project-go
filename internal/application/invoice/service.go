@@ -5,6 +5,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/rcarvalho-pb/payment_project-go/internal/application/contracts"
 	"github.com/rcarvalho-pb/payment_project-go/internal/application/worker"
 	"github.com/rcarvalho-pb/payment_project-go/internal/domain/event"
 	"github.com/rcarvalho-pb/payment_project-go/internal/domain/invoice"
@@ -18,6 +19,7 @@ var (
 type Service struct {
 	Repo     invoice.Repository
 	Recorder worker.Recorder
+	metrics  contracts.PaymentMetrics
 }
 
 func (s *Service) CreateInvoice(id string, amount int64) (*invoice.Invoice, error) {
@@ -25,6 +27,8 @@ func (s *Service) CreateInvoice(id string, amount int64) (*invoice.Invoice, erro
 	if err := s.Repo.Save(inv); err != nil {
 		return nil, ErrInvoiceNotFound
 	}
+
+	s.metrics.IncPending()
 
 	return inv, nil
 }

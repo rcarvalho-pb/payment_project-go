@@ -7,25 +7,35 @@ import (
 )
 
 func getWebRoutes(webHandler *web_handler.WebHandler) []Route {
-	const resource = "/"
+	const resource = "/invoices"
 	return []Route{
 		{
-			URI:      resource + "invoices",
+			URI:      resource,
 			Method:   http.MethodPost,
 			Function: webHandler.HandleNewInvoice,
 		},
 		{
-			URI:      resource + "invoices/{id}/pay",
+			URI:      resource + "/{id}/status",
+			Method:   http.MethodGet,
+			Function: webHandler.HandleStatus,
+		},
+		{
+			URI:      resource + "/{id}/pay",
 			Method:   http.MethodPost,
 			Function: webHandler.HandlePayment,
 		},
 		{
-			URI:      resource + "invoices/{id}/details",
+			URI:      resource + "/{id}/details",
 			Method:   http.MethodGet,
 			Function: webHandler.HandleDetails,
 		},
 		{
-			URI:      resource,
+			URI:      resource + "/metrics/update",
+			Method:   http.MethodGet,
+			Function: webHandler.HandleMetricsUpdate,
+		},
+		{
+			URI:      "/",
 			Method:   http.MethodGet,
 			Function: webHandler.HandleIndex,
 		},

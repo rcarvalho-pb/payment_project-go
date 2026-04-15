@@ -33,7 +33,7 @@ func (r *InvoiceRepository) FindByID(id string) (*invoice.Invoice, error) {
 
 func (r *InvoiceRepository) FindAll() ([]*invoice.Invoice, error) {
 	var invs []*invoice.Invoice
-	query := `SELECT * FROM invoices`
+	query := `SELECT * FROM invoices ORDER BY updated_at DESC`
 	err := r.db.Select(&invs, query)
 	if err != nil {
 		return nil, err

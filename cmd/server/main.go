@@ -94,7 +94,7 @@ func main() {
 		Recorder: &recorder,
 	}
 
-	webHandler := web_handler.NewWebHandler(invoiceService)
+	webHandler := web_handler.NewWebHandler(invoiceService, &metrics)
 	restHandler := rest_handler.NewRestHandler(invoiceService)
 
 	r := router.NewRouter(webHandler, restHandler)

@@ -32,10 +32,10 @@ templ ItemDetailsModal(inv *invoice.Invoice) {
 		</div>
 	</div>
 	<script>
-    var myModal = new bootstrap.Modal(document.getElementById("itemModal"));
+    var myModal = new bootstrap.Modal(document.getElementById("detailsModal"));
     myModal.show();
 
-    document.getElementById('itemModal').addEventListener('hidden-bs-modal', funcion() {
+    document.getElementById('detailsModal').addEventListener('hidden-bs-modal', function() {
         this.remove();
     });
 </script>

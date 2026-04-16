@@ -92,6 +92,7 @@ func main() {
 	invoiceService := &appInvoice.Service{
 		Repo:     invoiceRepo,
 		Recorder: &recorder,
+		Metrics:  &metrics,
 	}
 
 	webHandler := web_handler.NewWebHandler(invoiceService, &metrics)

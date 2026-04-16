@@ -19,7 +19,7 @@ var (
 type Service struct {
 	Repo     invoice.Repository
 	Recorder worker.Recorder
-	metrics  contracts.PaymentMetrics
+	Metrics  contracts.PaymentMetrics
 }
 
 func (s *Service) CreateInvoice(id string, amount int64) (*invoice.Invoice, error) {
@@ -28,7 +28,7 @@ func (s *Service) CreateInvoice(id string, amount int64) (*invoice.Invoice, erro
 		return nil, ErrInvoiceNotFound
 	}
 
-	s.metrics.IncPending()
+	s.Metrics.IncPending()
 
 	return inv, nil
 }

@@ -55,13 +55,15 @@ func (h *WebHandler) HandleNewInvoice(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	log.Println(id, amount)
+
 	inv, err := h.service.CreateInvoice(id, int64(amount))
 	if err != nil {
 		log.Println(err)
 		return
 	}
 
-	// w.Header().Set("HX-Trigger", "update-charts")
+	w.Header().Set("HX-Trigger", "update-charts")
 
 	components.InvoiceRow(inv).Render(r.Context(), w)
 }
@@ -90,7 +92,7 @@ func (h *WebHandler) HandlePayment(w http.ResponseWriter, r *http.Request) {
 
 	inv.Status = domain.Status(status)
 
-	// w.Header().Set("HX-Trigger", "update-charts")
+	w.Header().Set("HX-Trigger", "update-charts")
 
 	components.InvoiceRow(inv).Render(r.Context(), w)
 }

@@ -1,35 +1,36 @@
 package components
 
-import "encoding/json"
+// import "encoding/json"
 
 type ChartData struct {
-    Labels []string `json:"labels"`
-    Values []uint64 `json:"values"` // Alterado para uint64 para casar com seus contadores atômicos
+	Labels []string `json:"labels"`
+	Values []uint64 `json:"values"`
 }
 
-templ MetricsDashboard(data ChartData) {
-    {{ jsonData, _ := json.Marshal(data) }}
-    <div class="card shadow-sm">
-        <div class="card-body">
-            <h5 class="card-title">Métricas de Processamento</h5>
-            <canvas
-                id="metricsChart"
-                data-chart={ string(jsonData) }
-                hx-get="/invoices/metrics/update"
-                hx-trigger="every 30s, update-charts from:body"
-                hx-swap="none"
-                hx-on::after-request="updateChart(event.detail.xhr.response)"
-            ></canvas>
-        </div>
-    </div>
+templ MetricsDashboard() {
+    <div><canvas id="myChart"></canvas></div>
+
+	    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        // Inicializa assim que o elemento aparecer no DOM
-        (function() {
-            const el = document.getElementById('metricsChart');
-            if (el && !myChart) { // Evita inicializar duplicado
-                const data = JSON.parse(el.getAttribute('data-chart'));
-                initMyChart(el, data);
+      const ctx = document.getElementById('myChart');
+
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'],
+          datasets: [{
+            label: '# of Votes',
+            data: [12, 19, 3, 5, 2, 3],
+            borderWidth: 1
+          }]
+        },
+        options: {
+          scales: {
+            y: {
+              beginAtZero: true
             }
-        })();
+          }
+        }
+      });
     </script>
 }

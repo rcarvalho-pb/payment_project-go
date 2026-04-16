@@ -46,11 +46,11 @@ func Layout(invoices []*invoice.Invoice, metrics components.ChartData) templ.Com
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = components.MetricsDashboard(metrics).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = components.MetricsDashboard().Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</div></div></div></div></div><div id=\"modal-container\"></div><script src=\"https://unpkg.com/htmx.org@1.9.10\"></script><script src=\"https://unpkg.com/htmx.org/dist/ext/sse.js\"></script><script src=\"https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js\"></script><script src=\"https://cdn.jsdelivr.net/npm/chart.js\"></script><script>\n\t\t\t\tlet myChart; // Variável global para manter a instância do Chart.js\n\n\t\t\t\tfunction initMyChart(el, data) {\n\t\t\t\t    myChart = new Chart(el, {\n\t\t\t\t        type: 'bar',\n\t\t\t\t        data: {\n\t\t\t\t            labels: data.labels,\n\t\t\t\t            datasets: [{\n\t\t\t\t                label: 'Status dos Itens',\n\t\t\t\t                data: data.values,\n\t\t\t\t                // Adicionei uma cor a mais (ex: vermelho para failed)\n\t\t\t\t                backgroundColor: ['#6c757d', '#ffc107', '#198754', '#dc3545'] \n\t\t\t\t            }]\n\t\t\t\t        },\n\t\t\t\t        options: { responsive: true }\n\t\t\t\t    });\n\t\t\t\t}\n\n\t\t    function updateChart(jsonResponse) {\n\t\t        const data = JSON.parse(jsonResponse);\n\t\t        myChart.data.datasets[0].data = data.values;\n\t\t        myChart.update();\n\t\t    }\n\t    </script></body></html>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</div></div></div></div></div><div id=\"modal-container\"></div><script src=\"https://unpkg.com/htmx.org@1.9.10\"></script><script src=\"https://unpkg.com/htmx.org/dist/ext/sse.js\"></script><script src=\"https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js\"></script><script src=\"https://cdn.jsdelivr.net/npm/chart.js\" defer></script></body></html>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

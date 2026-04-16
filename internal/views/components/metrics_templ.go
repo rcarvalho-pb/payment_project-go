@@ -8,14 +8,14 @@ package components
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-import "encoding/json"
+// import "encoding/json"
 
 type ChartData struct {
 	Labels []string `json:"labels"`
-	Values []uint64 `json:"values"` // Alterado para uint64 para casar com seus contadores atômicos
+	Values []uint64 `json:"values"`
 }
 
-func MetricsDashboard(data ChartData) templ.Component {
+func MetricsDashboard() templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -36,21 +36,7 @@ func MetricsDashboard(data ChartData) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		jsonData, _ := json.Marshal(data)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"card shadow-sm\"><div class=\"card-body\"><h5 class=\"card-title\">Métricas de Processamento</h5><canvas id=\"metricsChart\" data-chart=\"")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		var templ_7745c5c3_Var2 string
-		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(string(jsonData))
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/components/metrics.templ`, Line: 17, Col: 45}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "\" hx-get=\"/invoices/metrics/update\" hx-trigger=\"every 30s, update-charts from:body\" hx-swap=\"none\" hx-on::after-request=\"updateChart(event.detail.xhr.response)\"></canvas></div></div><script>\n        // Inicializa assim que o elemento aparecer no DOM\n        (function() {\n            const el = document.getElementById('metricsChart');\n            if (el && !myChart) { // Evita inicializar duplicado\n                const data = JSON.parse(el.getAttribute('data-chart'));\n                initMyChart(el, data);\n            }\n        })();\n    </script>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div><canvas id=\"myChart\"></canvas></div><script src=\"https://cdn.jsdelivr.net/npm/chart.js\"></script><script>\n      const ctx = document.getElementById('myChart');\n\n      new Chart(ctx, {\n        type: 'bar',\n        data: {\n          labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'],\n          datasets: [{\n            label: '# of Votes',\n            data: [12, 19, 3, 5, 2, 3],\n            borderWidth: 1\n          }]\n        },\n        options: {\n          scales: {\n            y: {\n              beginAtZero: true\n            }\n          }\n        }\n      });\n    </script>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

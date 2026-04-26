@@ -12,6 +12,7 @@ const (
 	StatusCreated Status = iota + 1
 	StatusProcessing
 	StatusSuccess
+	StatusTemporaryFailed
 	StatusFailed
 )
 

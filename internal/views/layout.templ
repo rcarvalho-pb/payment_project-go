@@ -11,6 +11,8 @@ templ Layout(invoices []*invoice.Invoice, metrics components.ChartData) {
 			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 			<title>Gopher Dashboard - Templ + HTMX</title>
 			<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+      <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+      <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 			<style>
         #log-container {
             height: 200px;
@@ -73,7 +75,7 @@ templ Layout(invoices []*invoice.Invoice, metrics components.ChartData) {
 					<div class="col-md-4">
 						<div class="card shadow-sm mb-4">
 							<div class="card-body">
-								@components.MetricsDashboard()
+								@components.MetricsDashboard(metrics)
 							</div>
 						</div>
 						/*<div class="card bg-dark text-white shadow-sm">
@@ -90,7 +92,7 @@ templ Layout(invoices []*invoice.Invoice, metrics components.ChartData) {
 			<script src="https://unpkg.com/htmx.org@1.9.10"></script>
 			<script src="https://unpkg.com/htmx.org/dist/ext/sse.js"></script>
 			<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-			<script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+			<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 		</body>
 	</html>
 }

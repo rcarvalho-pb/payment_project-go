@@ -8,14 +8,25 @@ package components
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-// import "encoding/json"
+import (
+	"encoding/json"
+)
 
 type ChartData struct {
 	Labels []string `json:"labels"`
 	Values []uint64 `json:"values"`
 }
 
-func MetricsDashboard() templ.Component {
+func (c ChartData) toJson() string {
+	b, err := json.Marshal(c)
+	if err != nil {
+		return "{}"
+	}
+
+	return string(b)
+}
+
+func MetricsDashboard(datas ChartData) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -36,7 +47,19 @@ func MetricsDashboard() templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div><canvas id=\"myChart\"></canvas></div><script src=\"https://cdn.jsdelivr.net/npm/chart.js\"></script><script>\n      const ctx = document.getElementById('myChart');\n\n      new Chart(ctx, {\n        type: 'bar',\n        data: {\n          labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'],\n          datasets: [{\n            label: '# of Votes',\n            data: [12, 19, 3, 5, 2, 3],\n            borderWidth: 1\n          }]\n        },\n        options: {\n          scales: {\n            y: {\n              beginAtZero: true\n            }\n          }\n        }\n      });\n    </script>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div id=\"chart-container\" hx-get=\"/invoices/metrics/update\" hx-trigger=\"every 3s\" hx-swap=\"none\"><canvas id=\"myChart\" width=\"400\" height=\"200\"></canvas><script>\n            {\n                const rawData = ")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Var2, templ_7745c5c3_Err := templruntime.ScriptContentOutsideStringLiteral(datas.toJson())
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/components/metrics.templ`, Line: 32, Col: 49}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var2)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, ";\n                const chartData = JSON.parse(rawData);\n\n                const ctx = document.getElementById('myChart');\n\n                const myChartInstance = new Chart(ctx, {\n                    type: 'bar',\n                    data: {\n                        labels: chartData.labels,\n                        datasets: [{\n                            label: '# of Votes',\n                            data: chartData.values,\n                            borderWidth: 1\n                        }]\n                    },\n                    options: {\n                        scales: {\n                            y: {\n                                beginAtZero: true\n                            }\n                        },\n                        animation: { duration: 1000},\n                        responsive: true\n                    }\n                });\n                document.body.addEventListener(\"updateGraph\", (evt) => {\n                    const newData = evt.detail;\n                    if (newData && newData.values) {\n                        myChartInstance.data.datasets[0].data = newData.values;\n                        myChartInstance.update(); // Aqui a mágica da animação acontece\n                    }\n                });\n            }\n        </script></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

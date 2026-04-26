@@ -1,6 +1,7 @@
 package metrics
 
 import (
+	"log"
 	"math"
 	"sync/atomic"
 
@@ -18,7 +19,7 @@ type Counters struct {
 
 func (c *Counters) DeincPending() {
 	value := atomic.LoadUint64(&c.PaymentPending)
-	value = uint64(math.Min(0, float64(value-1)))
+	value = uint64(math.Max(0, float64(value-1)))
 	atomic.StoreUint64(&c.PaymentPending, value)
 }
 

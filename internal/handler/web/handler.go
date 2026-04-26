@@ -115,7 +115,7 @@ func (h *WebHandler) HandleLogs(w http.ResponseWriter, r *http.Request) {
 	flusher, _ := w.(http.Flusher)
 
 	// Exemplo de stream: em um projeto real, você usaria um channel
-	for i := 0; i < 100; i++ {
+	for i := range 100 {
 		fmt.Fprintf(w, "data: <div class='log-entry'>[%s] Evento de log %d</div>\n\n",
 			time.Now().Format("15:04:05"), i)
 		flusher.Flush()
@@ -136,8 +136,6 @@ func (h *WebHandler) HandleDetails(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *WebHandler) HandleMetricsUpdate(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
 	data := components.ChartData{
 		Labels: []string{"pending", "processed", "succeeded", "failed"},
 		Values: []uint64{
@@ -148,5 +146,8 @@ func (h *WebHandler) HandleMetricsUpdate(w http.ResponseWriter, r *http.Request)
 			h.metrics.Failed(),
 		},
 	}
-	json.NewEncoder(w).Encode(data)
+
+	jsonBytes, _ := json.Marshal(data)
+	w.Header().Set("HX-Trigger", fmt.Sprintf(`{"updateGraph": %s}`, string(jsonBytes)))
+	w.WriteHeader(http.StatusNoContent)
 }

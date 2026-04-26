@@ -1,36 +1,67 @@
 package components
 
-// import "encoding/json"
+import (
+    "encoding/json"
+)
 
 type ChartData struct {
-	Labels []string `json:"labels"`
-	Values []uint64 `json:"values"`
+    Labels []string `json:"labels"`
+    Values []uint64 `json:"values"`
 }
 
-templ MetricsDashboard() {
-    <div><canvas id="myChart"></canvas></div>
+func (c ChartData) toJson() string {
+	b, err := json.Marshal(c)
+	if err != nil {
+		return "{}"
+	}
 
-	    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
-      const ctx = document.getElementById('myChart');
+	return string(b)
+}
 
-      new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'],
-          datasets: [{
-            label: '# of Votes',
-            data: [12, 19, 3, 5, 2, 3],
-            borderWidth: 1
-          }]
-        },
-        options: {
-          scales: {
-            y: {
-              beginAtZero: true
+
+templ MetricsDashboard(datas ChartData) {
+	  <div id="chart-container"
+        hx-get="/invoices/metrics/update"
+        hx-trigger="every 3s"
+        hx-swap="none"
+    >
+        <canvas id="myChart" width="400" height="200"></canvas>
+
+        <script>
+            {
+                const rawData = {{ datas.toJson() }};
+                const chartData = JSON.parse(rawData);
+
+                const ctx = document.getElementById('myChart');
+
+                const myChartInstance = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: chartData.labels,
+                        datasets: [{
+                            label: '# of Votes',
+                            data: chartData.values,
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        },
+                        animation: { duration: 1000},
+                        responsive: true
+                    }
+                });
+                document.body.addEventListener("updateGraph", (evt) => {
+                    const newData = evt.detail;
+                    if (newData && newData.values) {
+                        myChartInstance.data.datasets[0].data = newData.values;
+                        myChartInstance.update(); // Aqui a mágica da animação acontece
+                    }
+                });
             }
-          }
-        }
-      });
-    </script>
+        </script>
+    </div>
 }

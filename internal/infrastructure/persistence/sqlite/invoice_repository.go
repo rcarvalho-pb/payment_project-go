@@ -1,6 +1,8 @@
 package sqlite
 
 import (
+	"database/sql"
+	"errors"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -52,7 +54,25 @@ func (r *InvoiceRepository) GetStatus(id string) (uint8, error) {
 }
 
 func (r *InvoiceRepository) UpdateStatus(id string, status invoice.Status) error {
+	return updateInvoiceStatus(r.db, id, status)
+}
+
+func (r *InvoiceRepository) UpdateStatusTx(tx *sql.Tx, id string, status invoice.Status) error {
+	return updateInvoiceStatus(tx, id, status)
+}
+
+func updateInvoiceStatus(execer interface {
+	Exec(query string, args ...any) (sql.Result, error)
+}, id string, status invoice.Status) error {
 	stmt := `UPDATE invoices SET status = ?, updated_at = ? WHERE id = ?`
-	_, err := r.db.Exec(stmt, status, time.Now(), id)
-	return err
+	result, err := execer.Exec(stmt, status, time.Now(), id)
+	if err != nil {
+		return err
+	}
+
+	if affected, _ := result.RowsAffected(); affected != 1 {
+		return errors.New("no row affected")
+	}
+
+	return nil
 }

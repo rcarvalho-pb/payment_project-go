@@ -1,6 +1,7 @@
 package sqlite
 
 import (
+	"database/sql"
 	"errors"
 	"time"
 
@@ -17,17 +18,20 @@ func NewPaymentRepository(db *sqlx.DB) *PaymentRepository {
 }
 
 func (r *PaymentRepository) SaveIfNotExist(p *payment.Payment) (bool, error) {
-	paymnt, err := r.FindByIdempotencyKey(p.IdempotencyKey)
-	if paymnt != nil {
-		return false, err
-	}
 	stmt := `
-	INSERT INTO payments (id, invoice_id, attempt, status, idempotency_key, created_at, updated_at)
+	INSERT OR IGNORE INTO payments (id, invoice_id, attempt, status, idempotency_key, created_at, updated_at)
 	VALUES (?, ?, ?, ?, ?, ?, ?)`
-	if _, err := r.db.Exec(stmt, p.ID, p.InvoiceID, p.Attempt, p.Status, p.IdempotencyKey, p.CreatedAt, p.UpdatedAt); err != nil {
+	result, err := r.db.Exec(stmt, p.ID, p.InvoiceID, p.Attempt, p.Status, p.IdempotencyKey, p.CreatedAt, p.UpdatedAt)
+	if err != nil {
 		return false, err
 	}
-	return true, nil
+
+	affected, err := result.RowsAffected()
+	if err != nil {
+		return false, err
+	}
+
+	return affected == 1, nil
 }
 
 func (r *PaymentRepository) FindByIdempotencyKey(idempotencyKey string) (*payment.Payment, error) {
@@ -53,8 +57,18 @@ func (r *PaymentRepository) FindAll() ([]*payment.Payment, error) {
 }
 
 func (r *PaymentRepository) UpdateStatus(id string, status payment.Status) error {
+	return updatePaymentStatus(r.db, id, status)
+}
+
+func (r *PaymentRepository) UpdateStatusTx(tx *sql.Tx, id string, status payment.Status) error {
+	return updatePaymentStatus(tx, id, status)
+}
+
+func updatePaymentStatus(execer interface {
+	Exec(query string, args ...any) (sql.Result, error)
+}, id string, status payment.Status) error {
 	stmt := `UPDATE payments SET status = ?, updated_at = ?  WHERE id = ?`
-	affectedRow, err := r.db.Exec(stmt, status, time.Now(), id)
+	affectedRow, err := execer.Exec(stmt, status, time.Now(), id)
 	if err != nil {
 		return err
 	}

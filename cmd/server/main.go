@@ -15,6 +15,7 @@ import (
 	web_handler "github.com/rcarvalho-pb/payment_project-go/internal/handler/web"
 	"github.com/rcarvalho-pb/payment_project-go/internal/infra/logging"
 	"github.com/rcarvalho-pb/payment_project-go/internal/infra/metrics"
+	uowsqlite "github.com/rcarvalho-pb/payment_project-go/internal/infra/uow/sqlite"
 	"github.com/rcarvalho-pb/payment_project-go/internal/infrastructure/eventbus"
 	"github.com/rcarvalho-pb/payment_project-go/internal/infrastructure/outbox"
 	infraPayment "github.com/rcarvalho-pb/payment_project-go/internal/infrastructure/payment"
@@ -38,6 +39,7 @@ func main() {
 	outboxMetrics := metrics.OutboxCounters{}
 	metrics := metrics.Counters{}
 	bus := eventbus.NewInMemoryBus()
+	uow := uowsqlite.New(db)
 
 	invoiceRepo := sqlite.NewInvoiceRepository(db)
 	invoicePaymentHandler := appInvoice.PaymentEventHandler{
@@ -85,6 +87,7 @@ func main() {
 		PaymentExecutor: &paymentExecutor,
 		Logger:          &logger,
 		Metrics:         &metrics,
+		UOW:             uow,
 	}
 
 	bus.Subscribe(domainEvent.PaymentRequested, processor.Handle)
@@ -93,6 +96,7 @@ func main() {
 		Repo:     invoiceRepo,
 		Recorder: &recorder,
 		Metrics:  &metrics,
+		UOW:      uow,
 	}
 
 	webHandler := web_handler.NewWebHandler(invoiceService, &metrics)

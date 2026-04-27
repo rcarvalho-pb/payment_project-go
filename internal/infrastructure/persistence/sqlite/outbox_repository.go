@@ -2,6 +2,7 @@ package sqlite
 
 import (
 	"context"
+	"database/sql"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/rcarvalho-pb/payment_project-go/internal/infrastructure/outbox"
@@ -16,11 +17,21 @@ func NewOutboxRepository(db *sqlx.DB) *OutboxRepository {
 }
 
 func (r *OutboxRepository) Save(evt *outbox.OutboxEvent) error {
+	return saveOutboxEvent(r.db, evt)
+}
+
+func (r *OutboxRepository) SaveTx(tx *sql.Tx, evt *outbox.OutboxEvent) error {
+	return saveOutboxEvent(tx, evt)
+}
+
+func saveOutboxEvent(execer interface {
+	Exec(query string, args ...any) (sql.Result, error)
+}, evt *outbox.OutboxEvent) error {
 	stmt := `
 	INSERT INTO outbox_events (id, correlation_id, event_type, payload, published, created_at) VALUES (?, ?, ?, ?, ?, ?)
 	`
 
-	_, err := r.db.Exec(stmt, evt.ID, evt.CorrelationID, evt.Type, evt.Payload, evt.Published, evt.CreatedAt)
+	_, err := execer.Exec(stmt, evt.ID, evt.CorrelationID, evt.Type, evt.Payload, evt.Published, evt.CreatedAt)
 	return err
 }
 
@@ -43,6 +54,10 @@ func (r *OutboxRepository) FindUnpublished(limit int) ([]*outbox.OutboxEvent, []
 }
 
 func (r *OutboxRepository) MarkPublished(ids []string) error {
+	if len(ids) == 0 {
+		return nil
+	}
+
 	tx, err := r.db.Begin()
 	if err != nil {
 		return err
@@ -63,6 +78,7 @@ func (r *OutboxRepository) MarkPublished(ids []string) error {
 }
 
 func (r *OutboxRepository) CountPending(ctx context.Context) (int, error) {
+	_ = ctx
 	stmt := `
 	SELECT COUNT(*) FROM outbox_events WHERE event_type = 1 
 	`

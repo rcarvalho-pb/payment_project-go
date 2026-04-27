@@ -2,7 +2,9 @@ package outbox
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
+	"errors"
 	"time"
 
 	"github.com/google/uuid"
@@ -17,23 +19,56 @@ type Recorder struct {
 }
 
 func (r *Recorder) Record(ctx context.Context, evt *event.Event) error {
-	payload, err := json.Marshal(evt.Payload)
+	outboxEvt, err := toOutboxEvent(ctx, evt)
 	if err != nil {
 		return err
 	}
 
+	if err := r.Repo.Save(outboxEvt); err != nil {
+		return err
+	}
+
+	r.Metrics.IncRecorded()
+
+	return nil
+}
+
+func (r *Recorder) RecordTx(ctx context.Context, tx *sql.Tx, evt *event.Event) error {
+	repo, ok := r.Repo.(interface {
+		SaveTx(*sql.Tx, *OutboxEvent) error
+	})
+	if !ok {
+		return errors.New("outbox repository does not support transactions")
+	}
+
+	outboxEvt, err := toOutboxEvent(ctx, evt)
+	if err != nil {
+		return err
+	}
+
+	if err := repo.SaveTx(tx, outboxEvt); err != nil {
+		return err
+	}
+
+	r.Metrics.IncRecorded()
+
+	return nil
+}
+
+func toOutboxEvent(ctx context.Context, evt *event.Event) (*OutboxEvent, error) {
+	payload, err := json.Marshal(evt.Payload)
+	if err != nil {
+		return nil, err
+	}
+
 	cid, _ := observability.CorrelationIDFromContext(ctx)
 
-	outboxEvt := &OutboxEvent{
+	return &OutboxEvent{
 		ID:            uuid.NewString(),
 		CorrelationID: cid,
 		Type:          evt.Type,
 		Payload:       payload,
 		Published:     false,
 		CreatedAt:     time.Now(),
-	}
-
-	r.Metrics.IncRecorded()
-
-	return r.Repo.Save(outboxEvt)
+	}, nil
 }

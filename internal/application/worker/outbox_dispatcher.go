@@ -42,6 +42,7 @@ func (d *OutboxDispatcher) dispatchOnce(ctx context.Context) {
 		d.Logger.Error("error finding unpublished outbox events: "+err.Error(), nil)
 		return
 	}
+	publishedIDs := make([]string, 0, len(ids))
 	for _, evt := range events {
 		payload, err := unmarshallPayload(evt)
 		if err != nil || payload == nil {
@@ -64,8 +65,9 @@ func (d *OutboxDispatcher) dispatchOnce(ctx context.Context) {
 			continue
 		}
 		d.Metrics.IncPublished()
+		publishedIDs = append(publishedIDs, evt.ID)
 	}
-	if err := d.Repo.MarkPublished(ids); err != nil {
+	if err := d.Repo.MarkPublished(publishedIDs); err != nil {
 		d.Logger.Error("error marking outbox event as published", nil)
 		return
 	}

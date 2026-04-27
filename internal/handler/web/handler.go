@@ -35,11 +35,10 @@ func (h *WebHandler) HandleIndex(w http.ResponseWriter, r *http.Request) {
 		log.Println("error getting invoices")
 	}
 	initialMetrics := components.ChartData{
-		Labels: []string{"pending", "processed", "succeeded", "failed"},
+		Labels: []string{"pending", "succeeded", "failed"},
 		Values: []uint64{
 			// Exemplo de como calcular ou buscar os valores atuais
 			h.metrics.Pending(),
-			h.metrics.Processed(),
 			h.metrics.Succeeded(),
 			h.metrics.Failed(),
 		},
@@ -137,11 +136,10 @@ func (h *WebHandler) HandleDetails(w http.ResponseWriter, r *http.Request) {
 
 func (h *WebHandler) HandleMetricsUpdate(w http.ResponseWriter, r *http.Request) {
 	data := components.ChartData{
-		Labels: []string{"pending", "processed", "succeeded", "failed"},
+		Labels: []string{"pending", "succeeded", "failed"},
 		Values: []uint64{
 			// Exemplo de como calcular ou buscar os valores atuais
 			h.metrics.Pending(),
-			h.metrics.Processed(),
 			h.metrics.Succeeded(),
 			h.metrics.Failed(),
 		},

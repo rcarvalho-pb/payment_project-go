@@ -3,6 +3,7 @@ module github.com/rcarvalho-pb/payment_project-go
 go 1.25.5
 
 require (
+	github.com/DATA-DOG/go-sqlmock v1.5.2
 	github.com/a-h/templ v0.3.1001
 	github.com/google/uuid v1.6.0
 	github.com/jmoiron/sqlx v1.4.0

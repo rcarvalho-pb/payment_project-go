@@ -20,6 +20,7 @@ var status = []string{
 	"CREATED",
 	"PROCESSING",
 	"SUCCESS",
+	"TEMPORARY_FAILED",
 	"FAILED",
 }
 

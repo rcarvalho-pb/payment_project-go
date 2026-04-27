@@ -1,8 +1,6 @@
 package metrics
 
 import (
-	"log"
-	"math"
 	"sync/atomic"
 
 	"github.com/rcarvalho-pb/payment_project-go/internal/application/contracts"
@@ -18,9 +16,16 @@ type Counters struct {
 }
 
 func (c *Counters) DeincPending() {
-	value := atomic.LoadUint64(&c.PaymentPending)
-	value = uint64(math.Max(0, float64(value-1)))
-	atomic.StoreUint64(&c.PaymentPending, value)
+	for {
+		value := atomic.LoadUint64(&c.PaymentPending)
+		if value == 0 {
+			return
+		}
+
+		if atomic.CompareAndSwapUint64(&c.PaymentPending, value, value-1) {
+			return
+		}
+	}
 }
 
 func (c *Counters) IncPending() {
@@ -48,9 +53,9 @@ func (c *Counters) Processed() uint64 {
 }
 
 func (c *Counters) Succeeded() uint64 {
-	return atomic.LoadUint64(&c.PaymentProcessed)
+	return atomic.LoadUint64(&c.PaymentSucceeded)
 }
 
 func (c *Counters) Failed() uint64 {
-	return atomic.LoadUint64(&c.PaymentProcessed)
+	return atomic.LoadUint64(&c.PaymentFailed)
 }

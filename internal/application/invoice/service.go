@@ -4,6 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
+	"strings"
 	"time"
 
 	"github.com/rcarvalho-pb/payment_project-go/internal/application/contracts"
@@ -13,8 +15,12 @@ import (
 )
 
 var (
-	ErrInvoiceNotFound     = errors.New("invoice not found")
-	ErrInvalidInvoiceState = errors.New("invalid invoice state")
+	ErrInvoiceNotFound      = errors.New("invoice not found")
+	ErrInvalidInvoiceState  = errors.New("invalid invoice state")
+	ErrInvoiceAlreadyExists = errors.New("invoice already exists")
+	ErrInvalidInvoiceID     = errors.New("invalid invoice id")
+	ErrInvalidInvoiceAmount = errors.New("invalid invoice amount")
+	ErrCreateInvoice        = errors.New("create invoice failed")
 )
 
 type Service struct {
@@ -27,9 +33,19 @@ type Service struct {
 }
 
 func (s *Service) CreateInvoice(id string, amount int64) (*invoice.Invoice, error) {
+	if strings.TrimSpace(id) == "" {
+		return nil, ErrInvalidInvoiceID
+	}
+	if amount <= 0 {
+		return nil, ErrInvalidInvoiceAmount
+	}
+
 	inv := invoice.NewInvoice(id, amount)
 	if err := s.Repo.Save(inv); err != nil {
-		return nil, ErrInvoiceNotFound
+		if strings.Contains(strings.ToLower(err.Error()), "unique constraint failed: invoices.id") {
+			return nil, ErrInvoiceAlreadyExists
+		}
+		return nil, fmt.Errorf("%w: %v", ErrCreateInvoice, err)
 	}
 
 	s.Metrics.IncPending()

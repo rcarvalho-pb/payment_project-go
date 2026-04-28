@@ -35,6 +35,16 @@ func getWebRoutes(webHandler *web_handler.WebHandler) []Route {
 			Function: webHandler.HandleMetricsUpdate,
 		},
 		{
+			URI:      "/logs",
+			Method:   http.MethodGet,
+			Function: webHandler.HandleLogs,
+		},
+		{
+			URI:      "/dashboard/overview",
+			Method:   http.MethodGet,
+			Function: webHandler.HandleDashboardOverview,
+		},
+		{
 			URI:      "/",
 			Method:   http.MethodGet,
 			Function: webHandler.HandleIndex,

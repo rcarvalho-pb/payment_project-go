@@ -44,6 +44,20 @@ func (r *PaymentRepository) FindByIdempotencyKey(idempotencyKey string) (*paymen
 	return &paymt, nil
 }
 
+func (r *PaymentRepository) FindByInvoiceID(invoiceID string) ([]*payment.Payment, error) {
+	var payments []*payment.Payment
+	query := `
+	SELECT * FROM payments
+	WHERE invoice_id = ?
+	ORDER BY attempt ASC, created_at ASC
+	`
+	if err := r.db.Select(&payments, query, invoiceID); err != nil {
+		return nil, err
+	}
+
+	return payments, nil
+}
+
 func (r *PaymentRepository) FindAll() ([]*payment.Payment, error) {
 	var paymnts []*payment.Payment
 	query := `

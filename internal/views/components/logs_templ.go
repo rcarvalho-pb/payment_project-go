@@ -29,7 +29,7 @@ func LogPanel() templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"bg-dark text-success p-3 rounded\" style=\"height: 300px; overflow-y: auto;\"><h6>System Logs [Live]</h6><div hx-ext=\"sse\" sse-connect=\"/logs\" sse-swap=\"message\" hx-swap=\"afterbegin\"></div></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"modal fade\" id=\"logsModal\" tabindex=\"-1\" aria-hidden=\"true\"><div class=\"modal-dialog modal-dialog-scrollable modal-xl\"><div class=\"modal-content border-0 shadow-lg\"><div class=\"modal-header dashboard-modal-header\"><div><h5 class=\"modal-title mb-1\">Central de logs</h5><p class=\"text-white-50 small mb-0\">Mensagens ao vivo do backend e do fluxo de pagamentos.</p></div><button type=\"button\" class=\"btn-close btn-close-white\" data-bs-dismiss=\"modal\" aria-label=\"Close\"></button></div><div class=\"modal-body bg-black p-0\"><div id=\"log-stream\" hx-ext=\"sse\" sse-connect=\"/logs\" sse-swap=\"message\" hx-swap=\"afterbegin\"></div></div></div></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

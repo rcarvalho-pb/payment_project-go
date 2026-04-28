@@ -91,35 +91,34 @@ func (p *PaymentProcessor) Handle(ctx context.Context, evt *event.Event) error {
 	}
 
 	p.Logger.Info("payment failed", fields)
-
-	p.Metrics.IncFailed()
-
+	retryable := p.Retry != nil && p.Retry.CanRetry(payload.Attempt)
 	failPayload := &event.PaymentFailedPayload{
 		InvoiceID:  payload.InvoiceID,
 		PaymentID:  paymentID,
-		Retryable:  true,
+		Retryable:  retryable,
 		Reason:     "temporary failure",
 		FinishedAt: time.Now(),
 	}
 
-	if err := p.persistResult(ctx, paymentID, domainPayment.StatusFailed, &event.Event{
+	status := domainPayment.StatusTemporaryFailed
+	if !retryable {
+		status = domainPayment.StatusFailed
+		failPayload.Reason = "max attempts reached"
+		p.Metrics.IncFailed()
+	}
+
+	if err := p.persistResult(ctx, paymentID, status, &event.Event{
 		Type:    event.PaymentFailed,
 		Payload: failPayload,
 	}); err != nil {
 		return err
 	}
 
-	err = p.Retry.ScheduleRetry(ctx, payload)
-	if err != nil {
-		failPayload.Retryable = false
-		failPayload.FinishedAt = time.Now()
-		return p.Recorder.Record(ctx, &event.Event{
-			Type:    event.PaymentFailed,
-			Payload: failPayload,
-		})
+	if !retryable {
+		return nil
 	}
 
-	return nil
+	return p.Retry.ScheduleRetry(ctx, payload)
 }
 
 func (p *PaymentProcessor) persistResult(ctx context.Context, paymentID string, status domainPayment.Status, evt *event.Event) error {

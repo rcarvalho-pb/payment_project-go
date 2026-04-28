@@ -5,6 +5,7 @@ import "fmt"
 
 templ InvoiceRow(inv *invoice.Invoice) {
     <tr
+        class="invoice-row"
         id={ fmt.Sprintf("inv-%s", inv.ID) }
         if inv.Status.IsProcessing() {
             hx-get={ fmt.Sprintf("/invoices/%s/status", inv.ID) }
@@ -12,15 +13,21 @@ templ InvoiceRow(inv *invoice.Invoice) {
             hx-swap="outerHTML"
         }
     >
-        <td>{ inv.ID }</td>
-        <td>{ fmt.Sprintf("%d", inv.Amount) }</td>
+        <td>
+			<div class="fw-semibold text-slate">{ inv.ID }</div>
+			<small class="text-muted">Invoice criada no dashboard</small>
+		</td>
+        <td>
+			<span class="fw-semibold">{ fmt.Sprintf("R$ %d", inv.Amount) }</span>
+		</td>
         <td>
             <span class={ "badge " + getStatusClass(inv.Status.String()) }>
                 { inv.Status }
             </span>
         </td>
         <td>
-            <button class="btn btn-sm btn-primary"
+			<div class="d-flex gap-2 flex-wrap justify-content-end">
+            <button class="btn btn-sm btn-dark rounded-pill px-3"
                 hx-post={ fmt.Sprintf("/invoices/%s/pay", inv.ID) }
                 hx-target={ fmt.Sprintf("#inv-%s", inv.ID) }
                 hx-swap="outerHTML"
@@ -34,21 +41,26 @@ templ InvoiceRow(inv *invoice.Invoice) {
                 }
             </button>
 
-            <button class="btn btn-sm btn-info ms-2"
+            <button class="btn btn-sm btn-outline-secondary rounded-pill px-3"
                 hx-get={ fmt.Sprintf("/invoices/%s/details", inv.ID) }
                 hx-target="#modal-container"
             >Detalhes</button>
+			</div>
         </td>
     </tr>
 }
 
 func getStatusClass(s string) string {
-    switch s {
-    case "":
-        return "bg-success"
-    case "Processando":
-        return "bg-warning"
-    default:
-        return "bg-secondary"
-    }
+	switch s {
+	case "PAID":
+		return "status-pill success"
+	case "PROCESSING":
+		return "status-pill warning"
+	case "FAILED", "CANCELED":
+		return "status-pill danger"
+	case "PENDING":
+		return "status-pill neutral"
+	default:
+		return "status-pill neutral"
+	}
 }

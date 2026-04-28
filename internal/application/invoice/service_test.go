@@ -18,9 +18,10 @@ type fakeInvoiceRepo struct {
 	invoice              *domainInvoice.Invoice
 	updateStatusCalled   bool
 	updateStatusTxCalled bool
+	saveErr              error
 }
 
-func (f *fakeInvoiceRepo) Save(*domainInvoice.Invoice) error { return nil }
+func (f *fakeInvoiceRepo) Save(*domainInvoice.Invoice) error { return f.saveErr }
 
 func (f *fakeInvoiceRepo) FindByID(string) (*domainInvoice.Invoice, error) {
 	return f.invoice, nil
@@ -98,5 +99,34 @@ func TestRequestPaymentUsesTransactionAndRollsBackWhenRecordingFails(t *testing.
 	}
 	if err := mock.ExpectationsWereMet(); err != nil {
 		t.Fatalf("sql expectations: %v", err)
+	}
+}
+
+func TestCreateInvoiceValidatesInput(t *testing.T) {
+	service := &Service{
+		Repo:    &fakeInvoiceRepo{},
+		Metrics: &metrics.Counters{},
+	}
+
+	if _, err := service.CreateInvoice("", 100); !errors.Is(err, ErrInvalidInvoiceID) {
+		t.Fatalf("expected invalid invoice id error, got %v", err)
+	}
+
+	if _, err := service.CreateInvoice("inv-1", 0); !errors.Is(err, ErrInvalidInvoiceAmount) {
+		t.Fatalf("expected invalid invoice amount error, got %v", err)
+	}
+}
+
+func TestCreateInvoiceMapsDuplicateKeyToDomainError(t *testing.T) {
+	service := &Service{
+		Repo: &fakeInvoiceRepo{
+			saveErr: errors.New("UNIQUE constraint failed: invoices.id"),
+		},
+		Metrics: &metrics.Counters{},
+	}
+
+	_, err := service.CreateInvoice("inv-1", 100)
+	if !errors.Is(err, ErrInvoiceAlreadyExists) {
+		t.Fatalf("expected duplicate key to map to ErrInvoiceAlreadyExists, got %v", err)
 	}
 }

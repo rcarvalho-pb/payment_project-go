@@ -16,8 +16,12 @@ type RetryScheduler struct {
 	MaxDelay  time.Duration
 }
 
+func (r *RetryScheduler) CanRetry(attempt int) bool {
+	return attempt < r.MaxRetry
+}
+
 func (r *RetryScheduler) ScheduleRetry(ctx context.Context, payload *event.PaymentRequestPayload) error {
-	if payload.Attempt >= r.MaxRetry {
+	if !r.CanRetry(payload.Attempt) {
 		return errors.New("max attempts reached")
 	}
 

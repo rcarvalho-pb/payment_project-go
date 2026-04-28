@@ -29,19 +29,22 @@ func (h *RestHandler) CreateInvoice(w http.ResponseWriter, r *http.Request) {
 	var req CreateInvoice
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "invalid request body", http.StatusBadRequest)
+		writeJSON(w, http.StatusBadRequest, errorResponse{
+			Error: apiError{
+				Code:    "invalid_request_body",
+				Message: "O corpo da requisição precisa conter um JSON válido.",
+			},
+		})
 		return
 	}
 
 	inv, err := h.service.CreateInvoice(req.ID, req.Amount)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		writeAPIError(w, err)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(inv)
+	writeJSON(w, http.StatusCreated, inv)
 }
 
 func (h *RestHandler) RequestPayment(w http.ResponseWriter, r *http.Request) {
@@ -51,7 +54,7 @@ func (h *RestHandler) RequestPayment(w http.ResponseWriter, r *http.Request) {
 	ctx := observability.WithCorrelationID(r.Context(), cid)
 
 	if err := h.service.RequestPayment(ctx, id); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		writeAPIError(w, err)
 		return
 	}
 
@@ -61,7 +64,7 @@ func (h *RestHandler) RequestPayment(w http.ResponseWriter, r *http.Request) {
 func (h *RestHandler) GetInvoices(w http.ResponseWriter, r *http.Request) {
 	invoices, err := h.service.Repo.FindAll()
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		writeAPIError(w, err)
 		return
 	}
 	invoicesDTO := make([]invoice.InvoiceDTO, 0)
@@ -76,6 +79,5 @@ func (h *RestHandler) GetInvoices(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(&invoicesDTO)
+	writeJSON(w, http.StatusOK, &invoicesDTO)
 }

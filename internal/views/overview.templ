@@ -1,0 +1,55 @@
+package views
+
+templ DashboardOverview(summary DashboardSummary) {
+	<div
+		id="dashboard-overview"
+		hx-get="/dashboard/overview"
+		hx-trigger="every 10s, refreshDashboard from:body"
+		hx-swap="outerHTML"
+		class="hero-card mb-4"
+	>
+		<div class="row g-4 align-items-end position-relative">
+			<div class="col-lg-7">
+				<p class="eyebrow text-white-50 mb-2">Dashboard operacional</p>
+				<h1 class="h2 mb-3">Uma visão mais clara do fluxo de cobrança</h1>
+				<p class="mb-4 text-white-50">
+					Acompanhe o status das invoices, dispare pagamentos e investigue tentativas sem ficar alternando entre tabela, métricas e terminal.
+				</p>
+				<div class="d-flex flex-wrap gap-2">
+					<button type="button" class="btn btn-soft-light rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#logsModal">
+						Abrir central de logs
+					</button>
+					<span class="status-pill" style="background: rgba(255,255,255,0.12); color: white;">atualização automática ativa</span>
+				</div>
+			</div>
+			<div class="col-lg-5">
+				<div class="summary-grid">
+					<div class="summary-tile">
+						<div class="summary-value">{ summary.InvoiceCount }</div>
+						<div class="summary-label">Invoices monitoradas</div>
+					</div>
+					<div class="summary-tile">
+						<div class="summary-value">{ summary.TotalAmount }</div>
+						<div class="summary-label">Volume total</div>
+					</div>
+					<div class="summary-tile">
+						<div class="summary-value">{ summary.OpenCount }</div>
+						<div class="summary-label">Aguardando ação</div>
+					</div>
+					<div class="summary-tile">
+						<div class="summary-value">{ summary.PaidCount }</div>
+						<div class="summary-label">Pagas com sucesso</div>
+					</div>
+					<div class="summary-tile">
+						<div class="summary-value">{ summary.FailureCount }</div>
+						<div class="summary-label">Falhas finais</div>
+					</div>
+					<div class="summary-tile">
+						<div class="summary-value">{ summary.ProcessingRate }</div>
+						<div class="summary-label">Taxa de sucesso</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+}

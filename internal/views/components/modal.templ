@@ -1,32 +1,83 @@
 package components
 
 import "fmt"
-import "github.com/rcarvalho-pb/payment_project-go/internal/domain/invoice"
 
-templ ItemDetailsModal(inv *invoice.Invoice) {
+templ ItemDetailsModal(data InvoiceDetailsData) {
 	<div class="modal fade" id="detailsModal" tabindex="-1" aria-hidden="true">
 		<div class="modal-dialog modal-lg">
-			<div class="modal-content">
-				<div class="modal-header">
-					<h5 class="modal-title">Detalhes do Item #{ fmt.Sprint(inv.ID) }</h5>
-					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			<div class="modal-content border-0 shadow-lg">
+				<div class="modal-header dashboard-modal-header">
+					<div>
+						<p class="eyebrow text-white-50 mb-2">Detalhes da invoice</p>
+						<h5 class="modal-title">Item #{ fmt.Sprint(data.Invoice.ID) }</h5>
+					</div>
+					<button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
 				</div>
-				<div class="modal-body">
-					<div class="row">
+				<div class="modal-body p-4">
+					<div class="row g-3">
 						<div class="col-md-6">
-							<p><strong>Valor:</strong> { inv.Amount }</p>
-							<p><strong>Status Atual:</strong> { inv.Status }</p>
+							<div class="detail-card detail-card-soft h-100">
+								<h6 class="mb-3">Resumo da invoice</h6>
+								<p class="mb-2"><strong>Valor:</strong> { formatMoneyBRL(data.Invoice.Amount) }</p>
+								<p class="mb-2"><strong>Status atual:</strong> { data.Invoice.Status }</p>
+								<p class="mb-2"><strong>Tentativas totais:</strong> { data.AttemptCount() }</p>
+								<p class="mb-0"><strong>Retries realizados:</strong> { data.RetryCount() }</p>
+							</div>
 						</div>
-						<div class="col-md-6 text-end">
-							<small class="text-muted">Data de Criação: { inv.CreatedAt.Format("02/01/2006") }</small>
+						<div class="col-md-6">
+							<div class="detail-card h-100">
+								<h6 class="mb-3">Linha do tempo</h6>
+								<p class="mb-2"><strong>Criado em:</strong> { formatDateTime(data.Invoice.CreatedAt) }</p>
+								<p class="mb-2"><strong>Atualizado em:</strong> { formatDateTime(data.Invoice.UpdatedAt) }</p>
+								<p class="mb-2"><strong>Vencimento:</strong> { formatDateTime(data.Invoice.DueDate) }</p>
+								<p class="mb-0"><strong>Último status de pagamento:</strong> { data.LastPaymentStatus() }</p>
+							</div>
 						</div>
 					</div>
 					<hr/>
-					<h6>Metadados Adicionais</h6>
-					<pre class="bg-light p-2">{ `{"id": ` + inv.ID + `, "info": "detalhes adicionais"}` }</pre>
+					<div class="d-flex justify-content-between align-items-center mb-3">
+						<h6 class="mb-0">Histórico de tentativas</h6>
+						<small class="text-muted">Última tentativa: { data.LastAttemptNumber() }</small>
+					</div>
+					if len(data.Payments) == 0 {
+						<div class="alert alert-secondary mb-0">
+							Nenhuma tentativa de pagamento registrada ainda.
+						</div>
+					} else {
+						<div class="table-responsive">
+							<table class="table table-sm align-middle mb-0 invoice-detail-table">
+								<thead>
+									<tr>
+										<th>Tentativa</th>
+										<th>Payment ID</th>
+										<th>Status</th>
+										<th>Idempotency Key</th>
+										<th>Criado em</th>
+										<th>Atualizado em</th>
+									</tr>
+								</thead>
+								<tbody>
+									for _, payment := range data.Payments {
+										<tr>
+											<td>{ payment.Attempt }</td>
+											<td><code>{ payment.ID }</code></td>
+											<td>
+												<span class={ "badge " + paymentStatusClass(payment.Status.String()) }>
+													{ payment.Status }
+												</span>
+											</td>
+											<td><code>{ payment.IdempotencyKey }</code></td>
+											<td>{ formatDateTime(payment.CreatedAt) }</td>
+											<td>{ formatDateTime(payment.UpdatedAt) }</td>
+										</tr>
+									}
+								</tbody>
+							</table>
+						</div>
+					}
 				</div>
 				<div class="modal-footer">
-					<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+					<button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Fechar</button>
 				</div>
 			</div>
 		</div>
@@ -35,7 +86,7 @@ templ ItemDetailsModal(inv *invoice.Invoice) {
     var myModal = new bootstrap.Modal(document.getElementById("detailsModal"));
     myModal.show();
 
-    document.getElementById('detailsModal').addEventListener('hidden-bs-modal', function() {
+    document.getElementById('detailsModal').addEventListener('hidden.bs.modal', function() {
         this.remove();
     });
 </script>

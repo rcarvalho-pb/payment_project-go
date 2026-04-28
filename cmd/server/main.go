@@ -26,7 +26,8 @@ import (
 const PORT = "8080"
 
 func main() {
-	logger := logging.StdoutLogger{}
+	logStream := logging.NewStream(150)
+	logger := logging.NewStdoutLogger(logStream)
 	logger.Info("starting program...", nil)
 	defer logger.Info("ending program...", nil)
 	db := sqlite.NewDB("./db/db.db")
@@ -99,7 +100,7 @@ func main() {
 		UOW:      uow,
 	}
 
-	webHandler := web_handler.NewWebHandler(invoiceService, &metrics)
+	webHandler := web_handler.NewWebHandler(invoiceService, &metrics, paymentRepo, &logger, logStream)
 	restHandler := rest_handler.NewRestHandler(invoiceService)
 
 	r := router.NewRouter(webHandler, restHandler)

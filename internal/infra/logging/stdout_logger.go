@@ -3,20 +3,37 @@ package logging
 import (
 	"encoding/json"
 	"fmt"
-	"maps"
 	"time"
 )
 
-type StdoutLogger struct{}
+type StdoutLogger struct {
+	Stream *Stream
+}
+
+func NewStdoutLogger(stream *Stream) StdoutLogger {
+	return StdoutLogger{Stream: stream}
+}
 
 func (l *StdoutLogger) log(level, msg string, fields map[string]any) {
+	clonedFields := cloneFields(fields)
+	if l.Stream != nil {
+		l.Stream.Publish(Entry{
+			Level:   level,
+			Message: msg,
+			Time:    time.Now().UTC().Format(time.RFC3339),
+			Fields:  clonedFields,
+		})
+	}
+
 	entry := map[string]any{
 		"level": level,
 		"msg":   msg,
 		"time":  time.Now().UTC().Format(time.RFC3339),
 	}
 
-	maps.Copy(entry, fields)
+	for k, v := range clonedFields {
+		entry[k] = v
+	}
 	b, _ := json.Marshal(entry)
 	fmt.Println(string(b))
 }

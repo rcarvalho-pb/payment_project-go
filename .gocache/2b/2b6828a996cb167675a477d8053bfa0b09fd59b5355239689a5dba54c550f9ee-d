@@ -1,0 +1,5 @@
+./details.go
+./logs_templ.go
+./metrics_templ.go
+./modal_templ.go
+./row_templ.go
